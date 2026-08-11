@@ -5,3 +5,4 @@ package-lock.json
 v*.mjs
 *-shot.png
 verify-*.png
+data/raw/pleiades-places.csv

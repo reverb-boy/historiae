@@ -74,7 +74,8 @@ html, body {
 :root { --panel-w: 344px; }
 
 /* antique tint applied to tiles only */
-#map.sepia .leaflet-tile-pane { filter: sepia(.55) saturate(.75) contrast(.92) brightness(1.02); }
+/* antique mode is a warm multiply-tint pane (set up in JS) — it warms the map
+   like aged paper while preserving the light/dark contrast of sea vs. land */
 
 /* ---- right panel -------------------------------------------------------- */
 #panel {
@@ -95,6 +96,15 @@ html, body {
   color: var(--ink); outline: none;
 }
 #search:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(184,134,11,.15); }
+#search-clear {
+  position: absolute; right: 22px; top: 50%; transform: translateY(-50%);
+  width: 20px; height: 20px; border: none; border-radius: 50%; cursor: pointer;
+  background: var(--edge); color: var(--ink); font-size: 15px; line-height: 1;
+  display: none; align-items: center; justify-content: center; padding: 0;
+}
+#search-clear:hover { background: var(--gold); }
+.search-wrap.has-text #search-clear { display: flex; }
+.search-wrap.has-text #search { padding-right: 40px; }
 #suggest {
   position: absolute; left: 14px; right: 14px; top: 52px; z-index: 30;
   background: #fff; border: 1px solid var(--edge); border-radius: 8px;
@@ -170,24 +180,19 @@ html, body {
 .credit { margin-top: 18px; font-size: 11px; color: var(--ink-soft); line-height: 1.5; font-style: italic; }
 .credit a { color: var(--accent); }
 
-/* ---- info card (slides over the panel, from the right) ------------------ */
+/* ---- info card (sits below the always-visible search bar) --------------- */
 #info {
-  position: absolute; inset: 0; background: var(--parchment);
-  transform: translateX(100%); transition: transform .28s cubic-bezier(.4,0,.2,1);
-  display: flex; flex-direction: column; z-index: 40;
+  flex: 1; min-height: 0; background: var(--parchment);
+  display: flex; flex-direction: column;
 }
-#info.open { transform: translateX(0); }
 .info-head {
   padding: 14px 16px 12px; border-bottom: 1px solid var(--edge);
   background: linear-gradient(180deg, var(--parchment-2), var(--parchment));
 }
-.info-head .top { display: flex; align-items: flex-start; gap: 10px; }
-.info-back {
-  font: inherit; cursor: pointer; background: none; border: none; color: var(--ink-soft);
-  font-size: 13px; padding: 0; display: inline-flex; align-items: center; gap: 5px; margin-bottom: 8px;
-}
-.info-back:hover { color: var(--accent); }
 .info-head h2 { margin: 0; font-size: 22px; line-height: 1.15; }
+.placeholder { color: var(--ink-soft); font-size: 14px; line-height: 1.6; }
+.placeholder p { margin: 0 0 14px; }
+.placeholder .cx { font-size: 11px; font-style: italic; line-height: 1.5; }
 .info-head .aka { font-size: 13px; color: var(--ink-soft); font-style: italic; margin-top: 3px; }
 .badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
 .badge {
@@ -253,6 +258,24 @@ blockquote.quote .cite {
   background: rgba(184,134,11,.16); border-radius: 4px; padding: 0 4px;
   text-shadow: 0 0 3px var(--parchment), 0 0 3px var(--parchment);
 }
+
+/* area labels for regions & peoples — spread text, no pin (like a country name) */
+.area-anchor { background: none; border: none; }
+.leaflet-tooltip.area-label {
+  background: transparent; border: none; box-shadow: none; padding: 0;
+  white-space: nowrap; pointer-events: auto; cursor: pointer; font-weight: 600;
+  text-shadow: 0 0 3px var(--parchment), 0 0 3px var(--parchment), 0 0 4px var(--parchment);
+}
+.leaflet-tooltip.area-label::before { display: none; }
+.area-label.region {
+  color: rgba(74,90,30,.9); text-transform: uppercase; letter-spacing: 1.6px; font-size: 11px;
+}
+.area-label.people {
+  color: rgba(120,80,45,.92); font-style: italic; font-size: 12px; letter-spacing: .3px;
+}
+.area-label.big { font-size: 13px; }               /* bigger, but spacing per-kind */
+.area-label.region.big { letter-spacing: 2.6px; }  /* only regions get the wide tracking */
+.area-label.hl { color: var(--accent) !important; }
 
 /* always-visible legend, top-left over the map */
 #legendbox {

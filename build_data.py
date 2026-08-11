@@ -14,11 +14,12 @@ import re
 import math
 import pathlib
 import unicodedata
-from collections import Counter
+from collections import Counter, defaultdict
 
 ROOT = pathlib.Path(__file__).resolve().parent
 RAW = json.loads((ROOT / "data" / "places_raw.json").read_text(encoding="utf-8"))
 CUR = json.loads((ROOT / "data" / "places_curated.json").read_text(encoding="utf-8"))
+HP = json.loads((ROOT / "data" / "peoples_curated.json").read_text(encoding="utf-8"))
 TT = json.loads((ROOT / "data" / "raw" / "tt_places.geojson").read_text(encoding="utf-8"))
 OUT = ROOT / "src" / "data_places.js"
 
@@ -46,6 +47,17 @@ def dist(a, b, c, d):
     return math.hypot(a - c, b - d)
 
 
+def root(s):
+    """Bare stem for matching an ethnonym to its place: Athenians/Athens -> athen,
+    Persians/Persia -> pers, Thebans/Thebes -> theb."""
+    s = norm(s)
+    for suf in ("ians", "ans", "enes", "eans", "ines", "ites", "oi", "ae", "es",
+                "ia", "is", "us", "os", "um", "on", "a", "e", "i", "s"):
+        if s.endswith(suf) and len(s) - len(suf) >= 3:
+            return s[:-len(suf)]
+    return s
+
+
 # ---- ToposText index: normalised name -> list of entries ------------------
 tt_index = {}
 for f in TT["features"]:
@@ -66,19 +78,75 @@ for f in TT["features"]:
     tt_index.setdefault(norm(name), []).append(entry)
 
 
+# loose index: strip Greek/Latin transliteration + ethnonym endings so that
+# "Siphnus"→"Siphnos" and "Paphlagonians"/"Paphlagonia"→same root. Only
+# unambiguous loose keys are used, so over-stripping stays safe.
+def loose(s):
+    return re.sub(r"(ians|ans|enes|eans|ines|oi|ai|ae|es|ia|is|us|os|um|on)$", "", norm(s))
+
+_loose_tmp = {}
+for _nn, _entries in tt_index.items():
+    _lk = loose(_nn)
+    if len(_lk) >= 4:
+        _loose_tmp.setdefault(_lk, {})[_nn] = _entries[0]
+tt_loose = {lk: next(iter(m.values())) for lk, m in _loose_tmp.items() if len(m) == 1}
+
+
 def tt_lookup(name, lat=None, lng=None):
-    """Best ToposText match for a name; if coords given, pick the nearest."""
+    """Best ToposText match for a name; if coords given, pick the nearest.
+    Falls back to a unique loose-ending match for spelling variants."""
     cands = tt_index.get(norm(name), [])
-    if not cands:
-        return None
-    if lat is None or len(cands) == 1:
-        return cands[0]
-    return min(cands, key=lambda e: dist(e["lat"], e["lng"], lat, lng))
+    if cands:
+        if lat is None or len(cands) == 1:
+            return cands[0]
+        return min(cands, key=lambda e: dist(e["lat"], e["lng"], lat, lng))
+    lk = loose(name)
+    if len(lk) >= 4 and lk in tt_loose:
+        return tt_loose[lk]
+    return None
 
 
-# ---- category from Getty/ToposText feature type ---------------------------
-def categorize(feat, ttype=""):
-    f = (feat + " " + (ttype or "")).lower()
+# ---- Pleiades gazetteer: covers ancient regions & peoples ToposText lacks ---
+import gzip, csv
+csv.field_size_limit(10 ** 7)
+_pl_exact = defaultdict(list)
+_pl_loose_names = defaultdict(set)
+_pl_loose_coord = {}
+with gzip.open(ROOT / "data" / "raw" / "pleiades-places.csv.gz", "rt", encoding="utf-8") as _f:
+    for _row in csv.DictReader(_f):
+        _t, _la, _lo = _row.get("title", ""), _row.get("reprLat", ""), _row.get("reprLong", "")
+        if not (_t and _la and _lo):
+            continue
+        try:
+            _la, _lo = float(_la), float(_lo)
+        except ValueError:
+            continue
+        _ft = (_row.get("featureTypes", "") or "").lower()
+        _n = norm(_t)
+        if _n:
+            _pl_exact[_n].append((_la, _lo, _ft))
+        _lk = loose(_t)
+        if len(_lk) >= 4:
+            _pl_loose_names[_lk].add(_n); _pl_loose_coord[_lk] = (_la, _lo, _ft)
+
+
+def pleiades_lookup(name):
+    """(lat, lng, featureTypes) for a name via Pleiades; unambiguous only."""
+    n = norm(name)
+    pts = {(a, b) for a, b, _ in _pl_exact.get(n, [])}
+    if len(pts) == 1:
+        return _pl_exact[n][0]
+    lk = loose(name)
+    if len(lk) >= 4 and len(_pl_loose_names.get(lk, ())) == 1:
+        return _pl_loose_coord[lk]
+    return None
+
+
+# ---- category from Getty/ToposText/Pleiades feature type ------------------
+def categorize(feat, ttype="", pl_ft=""):
+    f = (feat + " " + (ttype or "") + " " + (pl_ft or "")).lower()
+    if any(k in f for k in ("region", "province", "tribe", "ethnos", "people", "nation", "kingdom")):
+        return "region"     # areas render as spread labels, not pins
     if any(k in f for k in ("sea", "river", "gulf", "lake", "ocean", "strait", "bay", "spring", "water")):
         return "river"
     if "island" in f:
@@ -103,19 +171,55 @@ def rank_of(m):
     return 4
 MINZOOM = {1: 3, 2: 5, 3: 6, 4: 7}
 
+# ---- fix individual Perseus mis-geocodes (place, bad≈, good) ---------------
+# each: (norm-name, bad_lat, bad_lng, good_lat, good_lng) applied within ~0.3°
+COORD_FIX = [
+    ("naxos", 32.33, 25.583, 37.104, 25.483),   # Cycladic Naxos dropped into the sea off Libya
+]
+
+# regions ToposText resolved to a wrong homonym: force cat=region + correct point
+REGION_OVERRIDE = {
+    "mysia": (39.5, 28.2),   # the Anatolian region, not the tiny Argolid homonym
+}
+
+# ---- coarse parent-area from coordinates (to qualify duplicate names) ------
+AREAS = [  # name, lat0, lat1, lng0, lng1
+    ("Cyprus", 34.5, 35.8, 32.2, 34.7), ("Sicily", 36.5, 38.4, 12.2, 15.7),
+    ("Crete", 34.7, 35.8, 23.3, 26.5), ("the Cyclades", 36.0, 38.0, 24.0, 27.0),
+    ("the Dodecanese", 35.8, 37.2, 26.7, 28.7), ("the Peloponnese", 36.3, 38.05, 21.0, 23.2),
+    ("Attica", 37.7, 38.3, 23.3, 24.2), ("Boeotia", 38.05, 38.7, 22.7, 23.6),
+    ("Thessaly", 38.9, 39.9, 21.5, 23.4), ("Macedonia", 40.0, 41.5, 21.5, 24.5),
+    ("the Chersonese", 40.0, 40.75, 26.0, 27.2), ("Thrace", 40.0, 42.5, 24.5, 29.0),
+    ("Ionia", 37.5, 39.2, 26.2, 28.2), ("Caria", 36.4, 37.6, 27.0, 29.0),
+    ("Egypt", 22.0, 31.7, 24.5, 34.6), ("Libya", 20.0, 33.0, 9.0, 25.5),
+    ("Italy", 38.0, 46.0, 7.0, 18.6), ("the Caucasus", 40.5, 43.5, 39.0, 48.0),
+    ("Hispania", 36.0, 44.0, -10.0, 3.5), ("Arabia", 22.0, 33.0, 34.0, 40.0),
+]
+def coarse_area(lat, lng):
+    for nm, a, b, c, d in AREAS:
+        if a <= lat <= b and c <= lng <= d:
+            return nm
+    return None
+
 
 # ---- build generated places -----------------------------------------------
 places = {}          # id -> place dict
-recovered = 0
+recovered = recovered_pl = 0
 for r in RAW:
     lat, lng = r["lat"], r["lng"]
     tt = tt_lookup(r["name"], lat, lng)
+    pl_ft = ""
     if lat is None:
-        if tt is None:
-            continue                     # can't place it — skip
-        lat, lng = round(tt["lat"], 4), round(tt["lng"], 4)
-        recovered += 1
-    cat = categorize(r["feat"], tt["type"] if tt else "")
+        if tt is not None:
+            lat, lng = round(tt["lat"], 4), round(tt["lng"], 4)
+            recovered += 1
+        else:
+            pc = pleiades_lookup(r["name"])     # regions & peoples ToposText lacks
+            if pc is None:
+                continue                          # can't place it — skip
+            lat, lng, pl_ft = round(pc[0], 4), round(pc[1], 4), pc[2]
+            recovered_pl += 1
+    cat = "people" if r.get("kind") == "ethnic" else categorize(r["feat"], tt["type"] if tt else "", pl_ft)
     pid = slug(r["name"])
     while pid in places:                 # ensure unique ids
         pid += "-2"
@@ -128,6 +232,12 @@ for r in RAW:
         "books": books_from_refs(r["refs"]),
         "rank": rank_of(r["mentions"]),
     }
+
+# ---- apply manual coordinate fixes ----------------------------------------
+for p in places.values():
+    for nm, bla, blo, gla, glo in COORD_FIX:
+        if norm(p["name"]) == nm and abs(p["lat"] - bla) < 0.3 and abs(p["lng"] - blo) < 0.3:
+            p["lat"], p["lng"] = gla, glo
 
 # ---- scrub modern / anachronistic names Perseus' Getty geocoding introduced -
 # alias: rename to the co-located ancient twin so they merge in dedup below
@@ -148,7 +258,6 @@ for pid, p in places.items():
 places = cleaned
 
 # ---- dedupe near-duplicate generated places (same name, Perseus multi-key) -
-from collections import defaultdict
 groups = defaultdict(list)
 for p in places.values():
     groups[norm(p["name"])].append(p)
@@ -175,6 +284,43 @@ for nm, grp in groups.items():
         head["rank"] = rank_of(head["mentions"])
         deduped[head["id"]] = head
 places = deduped
+
+# ---- merge same-root neighbours (Paphlagonia + Paphlagonians, Lesbos + -ians)
+# A concrete place (city/island/river) keeps its identity and just absorbs the
+# ethnonym's mentions; only pure region+people pairs collapse into an area.
+CONCRETE = {"city", "landmark", "river", "sanctuary", "battle", "capital"}
+lgroups = defaultdict(list)
+for p in places.values():
+    lgroups[loose(p["name"])].append(p)
+kept = {}
+for lk, grp in lgroups.items():
+    if len(grp) < 2:
+        kept[grp[0]["id"]] = grp[0]; continue
+    used = [False] * len(grp)
+    for i, p in enumerate(grp):
+        if used[i]:
+            continue
+        cluster = [p]
+        for j in range(i + 1, len(grp)):
+            if not used[j] and dist(p["lat"], p["lng"], grp[j]["lat"], grp[j]["lng"]) < 0.6:
+                used[j] = True; cluster.append(grp[j])
+        # head: a concrete place wins; else the shortest name (region over -ians)
+        concrete = [c for c in cluster if c["cat"] in CONCRETE]
+        head = min(concrete or cluster, key=lambda c: (0 if c["cat"] in CONCRETE else 1, len(c["name"])))
+        for o in cluster:
+            if o is head:
+                continue
+            head["mentions"] += o["mentions"]
+            for rr in o["refs"]:
+                if rr not in head["refs"]:
+                    head["refs"].append(rr)
+        if head["cat"] in ("region", "people"):     # areas: pick region vs people by form
+            head["cat"] = "people" if re.search(r"(ians|ans)$", norm(head["name"])) else "region"
+        head["refs"].sort(key=refkey)
+        head["books"] = books_from_refs(head["refs"])
+        head["rank"] = rank_of(head["mentions"])
+        kept[head["id"]] = head
+places = kept
 
 
 # ---- merge the 45 curated entries -----------------------------------------
@@ -231,6 +377,83 @@ for p in places.values():
         p.pop("aka", None)
     out.append(p)
 
+# ---- qualify duplicate names by parent area (Naxos -> "Naxos (Sicily)") -----
+def base_name(n):
+    return re.sub(r"\s*\([^)]*\)\s*$", "", n).strip()
+
+by_base = defaultdict(list)
+for p in out:
+    by_base[norm(base_name(p["name"]))].append(p)
+for grp in by_base.values():
+    if len(grp) < 2:
+        continue
+    for p in grp:
+        if "(" in p["name"]:
+            continue                          # already qualified (e.g. curated)
+        area = coarse_area(p["lat"], p["lng"])
+        if area:
+            p["name"] = base_name(p["name"]) + " (" + area + ")"
+
+# ---- merge places that now share an identical qualified name and sit close --
+by_name = defaultdict(list)
+for p in out:
+    by_name[p["name"]].append(p)
+merged_out, same_merged = [], 0
+for grp in by_name.values():
+    grp.sort(key=lambda x: -(x.get("mentions") or 0))
+    used = [False] * len(grp)
+    for i, p in enumerate(grp):
+        if used[i]:
+            continue
+        for j in range(i + 1, len(grp)):
+            if used[j] or dist(p["lat"], p["lng"], grp[j]["lat"], grp[j]["lng"]) >= 1.2:
+                continue
+            used[j] = True; same_merged += 1
+            o = grp[j]
+            p["mentions"] = (p.get("mentions") or 0) + (o.get("mentions") or 0)
+            for rr in o.get("refs", []):
+                if rr not in p["refs"]:
+                    p["refs"].append(rr)
+            p["books"] = sorted(set(p.get("books", [])) | set(o.get("books", [])))
+            if not p.get("blurb") and o.get("blurb"):
+                p.update({"blurb": o["blurb"], "quote": o.get("quote"), "hand": True})
+        p["refs"].sort(key=refkey)
+        p["rank"] = min(p.get("rank", 4), rank_of(p["mentions"]))
+        p["minZoom"] = MINZOOM[p["rank"]]
+        merged_out.append(p)
+out = merged_out
+
+for p in out:                                    # force known mis-resolved regions
+    ov = REGION_OVERRIDE.get(norm(base_name(p["name"])))
+    if ov:
+        p["lat"], p["lng"], p["cat"] = ov[0], ov[1], "region"
+
+# ---- unify peoples: drop ethnics that duplicate a place/region/hand-people --
+# (they were often mis-geocoded, e.g. "Athenians" -> a Pontic homonym), then
+# add the 45-style hand-authored peoples so there is ONE peoples category.
+covered = set()
+for p in out:
+    if p["cat"] != "people":
+        r = root(p["name"])
+        if len(r) >= 3:
+            covered.add(r)
+for hp in HP:
+    r = root(hp["name"])
+    if len(r) >= 3:
+        covered.add(r)
+hand_names = {norm(hp["name"]) for hp in HP}
+before = len(out)
+out = [p for p in out if p["cat"] != "people"
+       or (root(p["name"]) not in covered and norm(p["name"]) not in hand_names)]
+dropped_ethnic = before - len(out)
+for hp in HP:                                    # hand peoples as area-label entries
+    pid = "ppl-" + slug(hp["name"])
+    out.append({
+        "id": pid, "name": hp["name"], "lat": hp["lat"], "lng": hp["lng"], "cat": "people",
+        "blurb": hp["blurb"], "quote": hp.get("quote"), "books": hp.get("books", []),
+        "refs": [], "mentions": 50, "rank": 1, "minZoom": 3, "hand": True,
+    })
+
 out.sort(key=lambda p: (p["rank"], -p["mentions"]))
 
 # ---- emit ------------------------------------------------------------------
@@ -243,7 +466,7 @@ OUT.write_text(header + "HERODOTUS.places = " +
                encoding="utf-8")
 
 # ---- report ----------------------------------------------------------------
-print(f"generated places : {len(out)}  (recovered via ToposText: {recovered}, dupes merged: {dupes_merged}, curated merged: {merged})")
+print(f"generated places : {len(out)}  (recovered ToposText: {recovered}, Pleiades: {recovered_pl}, dupes merged: {dupes_merged}, curated merged: {merged})")
 print(f"dropped modern/anachronistic names ({len(dropped_modern)}): {', '.join(sorted(dropped_modern))}")
 print("rank distribution:", dict(sorted(Counter(p['rank'] for p in out).items())))
 print("category distribution:", dict(Counter(p['cat'] for p in out).most_common()))

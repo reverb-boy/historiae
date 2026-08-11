@@ -15,7 +15,8 @@
     battle:    { color: "#c0392b", label: "Battle" },
     river:     { color: "#1a9aa0", label: "River / water" },
     landmark:  { color: "#8a6d3b", label: "Island / landmark" },
-    region:    { color: "#6b8e23", label: "Region / nation" },
+    region:    { color: "#6b8e23", label: "Region (area label)" },
+    people:    { color: "#9c6b3f", label: "People / tribe" },
   };
   const PEOPLE_COLOR = "#9c6b3f";
   const ROMAN = ["", "I","II","III","IV","V","VI","VII","VIII","IX"];
@@ -40,7 +41,7 @@
     "https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png",
     { subdomains: "abcd", maxZoom: 19,
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>' });
-  baseModern.addTo(map);
+  basePhysical.addTo(map);          // default: bare terrain (modern labels off)
 
   /* ---- layers ------------------------------------------------------------- */
   const placeCanvas = L.canvas({ padding: 0.5, tolerance: 10 });   // generous hit area
@@ -48,25 +49,22 @@
   const peoplesLayer = L.layerGroup().addTo(map);
   const highlightLayer = L.layerGroup().addTo(map);
 
-  let placesOn = true, peoplesOn = true;
-  const selectedBooks = new Set();
+  let placesOn = true, peoplesOn = false;          // peoples off by default
 
   /* ---- build place markers (not yet added; refresh() places them) --------- */
-  const placeRecs = HERODOTUS.places.map(function (p) {
-    const c = (CAT[p.cat] || CAT.landmark).color;
-    const baseR = RADIUS[p.rank] || 3;
-    const m = L.circleMarker([p.lat, p.lng], {
-      renderer: placeCanvas, radius: baseR,
-      color: "#fff", weight: 1, fillColor: c, fillOpacity: 1, opacity: 1,
-    });
-    // every place gets a permanent, interactive label; refresh() reveals it by tier
-    m.bindTooltip(p.name, { permanent: true, interactive: true, direction: "right", offset: [7, 0], className: "place-label" });
-    const rec = { data: p, marker: m, baseR: baseR, color: c, minZoom: p.minZoom,
-                  books: p.books || [], on: false, labelWanted: false };
+  // regions & peoples are spread text labels with NO pin (like a country name on
+  // Google Maps); regions live in the Places layer, peoples in the Peoples layer.
+  const placeRecs = [];    // point markers (dots)   — Places layer
+  const areaRecs = [];     // region area labels     — Places layer
+  const peopleRecs = [];   // people area labels     — Peoples layer
+
+  function wire(m, rec, p) {
     m.on("click", function (e) { L.DomEvent.stop(e); selectPlace(p); });
-    m.on("mouseover", function () { hoverOn(rec); });
-    m.on("mouseout", function () { hoverOff(rec); });
-    m.on("tooltipopen", function (e) {                 // make the label a hit target too
+    if (rec.kind === "point") {
+      m.on("mouseover", function () { hoverOn(rec); });
+      m.on("mouseout", function () { hoverOff(rec); });
+    }
+    m.on("tooltipopen", function (e) {                 // label is a hit target too
       const el = e.tooltip._container;
       if (!el) return;
       el.style.pointerEvents = "auto"; el.style.cursor = "pointer";
@@ -74,32 +72,62 @@
       el.onmouseenter = function () { hoverOn(rec); };
       el.onmouseleave = function () { hoverOff(rec); };
     });
-    return rec;
-  });
+  }
 
-  // hover feedback: enlarge the dot, ring it in gold, and surface its name
+  HERODOTUS.places.forEach(function (p) {
+    if (p.cat === "region" || p.cat === "people") {
+      const isPeople = p.cat === "people";
+      const m = L.marker([p.lat, p.lng], {
+        icon: L.divIcon({ className: "area-anchor", html: "", iconSize: [0, 0] }),
+        interactive: false, keyboard: false,
+      });
+      m.bindTooltip(p.name, { permanent: true, interactive: true, direction: "center",
+        className: "area-label " + p.cat + (p.rank <= 1 ? " big" : "") });
+      const rec = { data: p, marker: m, kind: "area", people: isPeople,
+                    layer: isPeople ? "peoples" : "places", minZoom: p.minZoom, on: false, labelWanted: false };
+      wire(m, rec, p); (isPeople ? peopleRecs : areaRecs).push(rec);
+    } else {
+      const c = (CAT[p.cat] || CAT.landmark).color;
+      const baseR = RADIUS[p.rank] || 3;
+      const m = L.circleMarker([p.lat, p.lng], {
+        renderer: placeCanvas, radius: baseR,
+        color: "#fff", weight: 1, fillColor: c, fillOpacity: 1, opacity: 1,
+      });
+      m.bindTooltip(p.name, { permanent: true, interactive: true, direction: "right", offset: [7, 0], className: "place-label" });
+      const rec = { data: p, marker: m, baseR: baseR, color: c, kind: "point",
+                    layer: "places", minZoom: p.minZoom, on: false, labelWanted: false };
+      wire(m, rec, p); placeRecs.push(rec);
+    }
+  });
+  const allRecs = placeRecs.concat(areaRecs, peopleRecs);
+
+  let selectedRec = null;   // the currently searched/clicked place — stays pinned
+
+  // hover + label helpers (work for point dots and pin-less area labels)
   function labelEl(rec) { const tt = rec.marker.getTooltip(); return tt && tt._container; }
   function showLabel(rec, show) { const el = labelEl(rec); if (el) el.style.display = show ? "" : "none"; }
   function hoverOn(rec) {
     hoveredRec = rec;
-    rec.marker.setStyle({ radius: rec.baseR + 3, weight: 2, color: "#b8860b" });
-    if (rec.marker.bringToFront) rec.marker.bringToFront();
+    if (rec.kind === "point") {
+      rec.marker.setStyle({ radius: rec.baseR + 3, weight: 2, color: "#b8860b" });
+      if (rec.marker.bringToFront) rec.marker.bringToFront();
+    }
     showLabel(rec, true);
     const el = labelEl(rec); if (el) el.classList.add("hl");
     mapEl.style.cursor = "pointer";
   }
   function hoverOff(rec) {
     if (hoveredRec === rec) hoveredRec = null;
-    rec.marker.setStyle({ radius: rec.baseR, weight: 1, color: "#fff" });
-    showLabel(rec, rec.labelWanted);          // restore the declutter decision
-    const el = labelEl(rec); if (el) el.classList.remove("hl");
+    if (rec.kind === "point") rec.marker.setStyle({ radius: rec.baseR, weight: 1, color: "#fff" });
+    showLabel(rec, rec.labelWanted || rec === selectedRec);
+    const el = labelEl(rec); if (el && rec !== selectedRec) el.classList.remove("hl");
     mapEl.style.cursor = "";
   }
 
-  // greedy label declutter: show the most-mentioned places whose label box does
-  // not overlap a higher-priority one; reveal more as zoom frees up space.
-  function labelBox(pt, name, centered) {
-    const w = name.length * 7.0 + 8, h = 17;      // ~ rendered label size + margin
+  // greedy label declutter: show the most-mentioned labels whose box doesn't
+  // overlap a higher-priority one; areas (regions/peoples) win over city dots.
+  function labelBox(pt, name, centered, wpc) {
+    const w = name.length * (wpc || 7.0) + 8, h = 17;
     return centered ? { x: pt.x - w / 2, y: pt.y - h / 2, w: w, h: h }
                     : { x: pt.x + 7, y: pt.y - h / 2, w: w, h: h };
   }
@@ -110,61 +138,49 @@
     }
     return false;
   }
+  function reserve(rec, placed) {
+    const centered = rec.kind === "area" || rec.people;
+    placed.push(labelBox(map.latLngToContainerPoint(rec.marker.getLatLng()), rec.data.name, centered, centered ? 9 : 7));
+  }
   function declutterLabels() {
     const size = map.getSize();
     const placed = [];
-    // people labels are always shown and reserved first (highest priority)
-    peopleRecs.forEach(function (r) {
-      if (!r.on) return;
-      placed.push(labelBox(map.latLngToContainerPoint(r.marker.getLatLng()), r.data.name, true));
-    });
-    // keep a hovered label visible no matter what
-    if (hoveredRec && hoveredRec.on) {
-      placed.push(labelBox(map.latLngToContainerPoint(hoveredRec.marker.getLatLng()), hoveredRec.data.name, false));
+    if (hoveredRec && hoveredRec.on) reserve(hoveredRec, placed);
+    if (selectedRec && selectedRec !== hoveredRec && selectedRec.on) {
+      showLabel(selectedRec, true); reserve(selectedRec, placed);
     }
-    const cands = placeRecs.filter(function (r) { return r.on && r !== hoveredRec; });
-    cands.sort(function (a, b) { return (b.data.mentions || 0) - (a.data.mentions || 0); });
-    cands.forEach(function (r) {
-      const pt = map.latLngToContainerPoint(r.marker.getLatLng());
-      if (pt.x < -60 || pt.y < -40 || pt.x > size.x + 60 || pt.y > size.y + 40) {
-        r.labelWanted = false; showLabel(r, false); return;   // offscreen: no label
-      }
-      const box = labelBox(pt, r.data.name, false);
-      if (!boxHits(box, placed)) { r.labelWanted = true; placed.push(box); showLabel(r, true); }
-      else { r.labelWanted = false; showLabel(r, false); }
-    });
+    function lay(recs, centered, wpc) {
+      recs.filter(function (r) { return r.on && r !== hoveredRec && r !== selectedRec; })
+        .sort(function (a, b) { return (b.data.mentions || 0) - (a.data.mentions || 0); })
+        .forEach(function (r) {
+          const pt = map.latLngToContainerPoint(r.marker.getLatLng());
+          if (pt.x < -80 || pt.y < -40 || pt.x > size.x + 80 || pt.y > size.y + 40) {
+            r.labelWanted = false; showLabel(r, false); return;
+          }
+          const box = labelBox(pt, r.data.name, centered, wpc);
+          if (!boxHits(box, placed)) { r.labelWanted = true; placed.push(box); showLabel(r, true); }
+          else { r.labelWanted = false; showLabel(r, false); }
+        });
+    }
+    lay(peopleRecs, true, 9);   // peoples (area labels) — top priority
+    lay(areaRecs, true, 9);     // regions
+    lay(placeRecs, false, 7);   // then the point dots
   }
 
-  /* ---- build people markers ---------------------------------------------- */
-  const peopleRecs = HERODOTUS.peoples.map(function (p) {
-    const m = L.circleMarker([p.lat, p.lng], {
-      radius: 11, color: PEOPLE_COLOR, weight: 2, dashArray: "3 3",
-      fillColor: PEOPLE_COLOR, fillOpacity: 0.22, opacity: 0.9,
-    });
-    m.bindTooltip(p.name, { className: "people-label", permanent: true, direction: "center" });
-    m.on("click", function (e) { L.DomEvent.stop(e); selectPeople(p); });
-    return { data: p, marker: m, books: p.books || [], on: false, people: true };
-  });
+  const recById = {};    // place id -> rec, for pinning the selected place
+  allRecs.forEach(function (r) { recById[r.data.id] = r; });
 
   /* ---- the one function that decides what's visible ----------------------- */
-  function bookOK(books) {
-    return selectedBooks.size === 0 || books.some(function (b) { return selectedBooks.has(b); });
-  }
   function refresh() {
     const z = map.getZoom();
     let visible = 0, hiddenByZoom = 0;
-    placeRecs.forEach(function (rec) {
-      const passBook = bookOK(rec.books);
+    allRecs.forEach(function (rec) {
+      const layerOn = rec.layer === "peoples" ? peoplesOn : placesOn;
       const passZoom = rec.minZoom <= z;
-      const want = placesOn && passBook && passZoom;
+      const want = layerOn && (passZoom || rec === selectedRec);   // selected stays pinned
       if (want && !rec.on) { rec.marker.addTo(placesLayer); rec.on = true; }
       else if (!want && rec.on) { placesLayer.removeLayer(rec.marker); rec.on = false; }
-      if (placesOn && passBook) { if (passZoom) visible++; else hiddenByZoom++; }
-    });
-    peopleRecs.forEach(function (rec) {
-      const want = peoplesOn && bookOK(rec.books);
-      if (want && !rec.on) { rec.marker.addTo(peoplesLayer); rec.on = true; }
-      else if (!want && rec.on) { peoplesLayer.removeLayer(rec.marker); rec.on = false; }
+      if (rec.layer === "places" && rec !== selectedRec) { if (passZoom) visible++; else hiddenByZoom++; }
     });
     declutterLabels();
     updateHint(visible, hiddenByZoom);
@@ -186,7 +202,7 @@
   /*  RIGHT-PANEL UI                                                          */
   /* ======================================================================== */
   document.getElementById("count-places").textContent = PLACE_TOTAL;
-  document.getElementById("count-peoples").textContent = HERODOTUS.peoples.length;
+  document.getElementById("count-peoples").textContent = peopleRecs.length;
 
   document.querySelectorAll('.toggle[data-layer]').forEach(function (el) {
     el.addEventListener("click", function () {
@@ -201,47 +217,6 @@
     });
   });
 
-  // ---- book chips ----
-  const chipsEl = document.getElementById("book-chips");
-  const bookHint = document.getElementById("book-hint");
-  const allChip = mkChip("All", "all");
-  allChip.classList.add("on");
-  allChip.addEventListener("click", function () { selectedBooks.clear(); applyBookFilter(); });
-  chipsEl.appendChild(allChip);
-  for (let b = 1; b <= 9; b++) {
-    (function (b) {
-      const chip = mkChip(ROMAN[b], "");
-      chip.title = "Book " + ROMAN[b] + " — " + bookName(b);
-      chip.dataset.book = b;
-      chip.addEventListener("click", function () {
-        if (selectedBooks.has(b)) selectedBooks.delete(b); else selectedBooks.add(b);
-        applyBookFilter();
-      });
-      chipsEl.appendChild(chip);
-    })(b);
-  }
-  function mkChip(txt, cls) {
-    const c = document.createElement("button");
-    c.className = "chip" + (cls ? " " + cls : ""); c.textContent = txt; return c;
-  }
-  function bookName(n) {
-    const b = HERODOTUS.books.find(function (x) { return x.n === n; });
-    return b ? b.name + " — " + b.theme : "";
-  }
-  function applyBookFilter() {
-    allChip.classList.toggle("on", selectedBooks.size === 0);
-    chipsEl.querySelectorAll(".chip[data-book]").forEach(function (c) {
-      c.classList.toggle("on", selectedBooks.has(+c.dataset.book));
-    });
-    if (selectedBooks.size === 0) { bookHint.textContent = ""; }
-    else {
-      const nums = Array.from(selectedBooks).sort(function (a, b) { return a - b; });
-      const names = nums.map(function (n) { return "Book " + ROMAN[n] + " (" + bookName(n).split(" — ")[0] + ")"; });
-      bookHint.textContent = "Showing only places named in " + names.join(", ") + ".";
-    }
-    refresh();
-  }
-
   // ---- legend ----
   const legendEl = document.getElementById("legend");
   Object.keys(CAT).forEach(function (k) {
@@ -250,14 +225,8 @@
     item.innerHTML = '<span class="dot" style="background:' + CAT[k].color + '"></span>' + CAT[k].label;
     legendEl.appendChild(item);
   });
-  (function () {
-    const item = document.createElement("div");
-    item.className = "item";
-    item.innerHTML = '<span class="dot" style="background:' + PEOPLE_COLOR + ';opacity:.6"></span>People / nation';
-    legendEl.appendChild(item);
-  })();
 
-  document.getElementById("credit").innerHTML =
+  const CREDIT =
     PLACE_TOTAL + " places drawn from Herodotus, <i>Histories</i> (Books I–IX), extracted from the " +
     "Perseus text and geolocated via Perseus &amp; ToposText; citations are book.chapter. " +
     "Hand-written passages are paraphrased. Basemap © OpenStreetMap &amp; CARTO.";
@@ -267,19 +236,28 @@
   /* ======================================================================== */
   const searchEl = document.getElementById("search");
   const suggestEl = document.getElementById("suggest");
-  const searchIndex = placeRecs.map(function (rec) {
+  // loose key: letters only, common Greek/Latin endings stripped, so spelling
+  // variants match (Siphnos↔Siphnus, Cyme↔Kyme-ish, -us/-os/-um/-on)
+  function looseKey(s) {
+    return String(s || "").toLowerCase().replace(/[^a-z]/g, "").replace(/(us|os|um|on|es|ai|oi|e|a)$/, "");
+  }
+  const searchIndex = allRecs.map(function (rec) {
     const d = rec.data;
     return { rec: rec, kind: "place", name: d.name,
-      hay: (d.name + " " + (d.aka || "") + " " + (d.region || "")).toLowerCase(),
+      hay: (d.name + " " + (d.aka || "") + " " + (d.region || "") + " " + (d.blurb || "")).toLowerCase(),
+      loose: looseKey(d.name),
       color: (CAT[d.cat] || CAT.landmark).color, sub: d.region || CAT[d.cat].label };
-  }).concat(peopleRecs.map(function (rec) {
-    const d = rec.data;
-    return { rec: rec, kind: "people", name: d.name,
-      hay: (d.name + " " + (d.blurb || "")).toLowerCase(), color: PEOPLE_COLOR, sub: "people" };
-  }));
+  });
+
+  const searchWrap = searchEl.closest(".search-wrap");
+  const clearBtn = document.getElementById("search-clear");
+  function syncClear() { searchWrap.classList.toggle("has-text", searchEl.value.length > 0); }
+  clearBtn.addEventListener("click", function () {
+    searchEl.value = ""; syncClear(); closeSuggest(); searchEl.focus();
+  });
 
   let sugActive = -1;
-  searchEl.addEventListener("input", function () { runSearch(searchEl.value); });
+  searchEl.addEventListener("input", function () { syncClear(); runSearch(searchEl.value); });
   searchEl.addEventListener("focus", function () { if (searchEl.value) runSearch(searchEl.value); });
   searchEl.addEventListener("keydown", function (e) {
     const items = suggestEl.querySelectorAll(".sug");
@@ -297,13 +275,15 @@
   function runSearch(q) {
     q = q.trim().toLowerCase();
     if (!q) { closeSuggest(); return; }
-    // rank: name-startswith first, then name-contains, then other fields
+    // rank: name-startswith first, then name-contains, other fields, then loose
+    const ql = looseKey(q);
     const scored = [];
     searchIndex.forEach(function (x) {
       const n = x.name.toLowerCase();
       let s = -1;
       if (n === q) s = 0; else if (n.indexOf(q) === 0) s = 1;
       else if (n.indexOf(q) !== -1) s = 2; else if (x.hay.indexOf(q) !== -1) s = 3;
+      else if (ql.length >= 3 && x.loose.indexOf(ql) === 0) s = 4;   // spelling-tolerant
       if (s >= 0) scored.push({ x: x, s: s });
     });
     scored.sort(function (a, b) {
@@ -325,7 +305,7 @@
         '<span class="nm">' + esc(h.name) + "</span>" +
         '<span class="meta">' + esc(h.sub || h.kind) + "</span>";
       el.addEventListener("click", function () {
-        searchEl.value = h.name; closeSuggest();
+        searchEl.value = h.name; syncClear(); closeSuggest();
         if (h.kind === "people") selectPeople(h.rec.data); else selectPlace(h.rec.data);
       });
       suggestEl.appendChild(el);
@@ -346,15 +326,21 @@
   /* ======================================================================== */
   /*  INFO CARD                                                               */
   /* ======================================================================== */
-  const infoEl = document.getElementById("info");
+  const infoHead = document.getElementById("info-head");
   const infoTitle = document.getElementById("info-title");
   const infoAka = document.getElementById("info-aka");
   const infoBadges = document.getElementById("info-badges");
   const infoBody = document.getElementById("info-body");
-  document.getElementById("info-back").addEventListener("click", function () { closeInfo(); });
-  map.on("click", function () { closeInfo(); });
-  function openInfo() { infoEl.classList.add("open"); }
-  function closeInfo() { infoEl.classList.remove("open"); clearHighlight(); }
+  map.on("click", function () { showPlaceholder(); });
+  function openInfo() { infoHead.style.display = ""; }
+  function showPlaceholder() {
+    infoHead.style.display = "none";
+    infoBody.innerHTML =
+      '<div class="placeholder"><p>Search above, or click any place on the map, ' +
+      'to read what Herodotus reports of it.</p><p class="cx">' + CREDIT + "</p></div>";
+    clearHighlight();
+    if (selectedRec) { selectedRec = null; refresh(); }   // unpin the old selection
+  }
 
   function booksLine(books) {
     if (!books || !books.length) return "";
@@ -398,7 +384,9 @@
     }
     infoBody.innerHTML = body;
     openInfo();
+    selectedRec = recById[p.id] || null;      // pin it (stays visible when zoomed out)
     highlightAt(p.lat, p.lng);
+    refresh();
     map.flyTo([p.lat, p.lng], Math.max(map.getZoom(), p.minZoom, 6), { duration: 0.7 });
   }
 
@@ -408,6 +396,7 @@
     infoBadges.innerHTML = '<span class="badge cat" style="background:' + PEOPLE_COLOR + '">People / nation</span>';
     infoBody.innerHTML = '<p class="blurb">' + esc(p.blurb) + "</p>" + quoteBlock(p.quote) + booksLine(p.books);
     openInfo();
+    if (selectedRec) { selectedRec = null; refresh(); }   // unpin any place selection
     highlightAt(p.lat, p.lng);
     map.flyTo([p.lat, p.lng], Math.max(map.getZoom(), 5), { duration: 0.7 });
   }
@@ -415,10 +404,22 @@
   /* ======================================================================== */
   /*  TOP-BAR + INTRO                                                          */
   /* ======================================================================== */
+  // antique mode: a warm tint pane above the tiles but below markers, using
+  // multiply blending so sea stays lighter than land (unlike a flat sepia())
+  map.createPane("tint");
+  const tintPane = map.getPane("tint");
+  tintPane.style.zIndex = 250;
+  tintPane.style.mixBlendMode = "multiply";
+  tintPane.style.pointerEvents = "none";
+  const tintRect = L.rectangle([[-89, -180], [89, 180]], {
+    pane: "tint", stroke: false, fillColor: "#e7d3a1", fillOpacity: 0.8, interactive: false,
+  });
   const sepiaBtn = document.getElementById("btn-sepia");
+  let antiqueOn = false;
   sepiaBtn.addEventListener("click", function () {
-    const on = mapEl.classList.toggle("sepia");
-    sepiaBtn.classList.toggle("active", on);
+    antiqueOn = !antiqueOn;
+    if (antiqueOn) tintRect.addTo(map); else map.removeLayer(tintRect);
+    sepiaBtn.classList.toggle("active", antiqueOn);
   });
   const intro = document.getElementById("intro");
   document.getElementById("intro-go").addEventListener("click", function () {
@@ -430,6 +431,7 @@
   setTimeout(function () { map.invalidateSize(); refresh(); }, 200);
   window.addEventListener("resize", function () { map.invalidateSize(); });
   refresh();
+  showPlaceholder();
 
   function esc(s) {
     return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");

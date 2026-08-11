@@ -11,8 +11,10 @@ the map's tile imagery streams from the network (as with any web map).
 
 ## Features
 
-- **~387 places** on a real basemap, colour-coded by kind (capital, city,
-  sanctuary, battle, river/water, island/landmark, region/nation).
+- **~580 places** on a real basemap, colour-coded by kind (capital, city,
+  sanctuary, battle, river/water, island/landmark). **Regions and peoples**
+  (Ionia, Paphlagonia, the Mariandynians…) render as spread **area labels with
+  no pin**, like a country name on Google Maps.
 - **Google-style zoom decluttering** — the great places (Athens, Sardis, Susa,
   Babylon, Memphis, Delphi…) show first; the lesser ones appear as you zoom in,
   and by deep zoom **every place is labelled**. Ranking is by **mention-frequency
@@ -21,7 +23,9 @@ the map's tile imagery streams from the network (as with any web map).
   and — for the major places — a hand-written note and a cited passage. Minor
   places get an auto-stub (category, region, and every passage that names them)
   plus a link to the Pleiades gazetteer.
-- **Peoples / ethnography layer** — 19 nations with Herodotus' notes.
+- **Peoples layer** (toggle) — ~60 nations and tribes as area labels, from the
+  hand-authored (Scythians, Massagetae…) to the far-flung (Mariandynians,
+  Chalybes, Tibareni), each with Herodotus' notes.
 - **Search** anything; **filter by book** (I–IX); **selection glow** on the chosen
   place; **"Modern places & borders"** toggle for bare terrain; **Sepia** tint.
 
@@ -34,19 +38,23 @@ The places are not hand-typed — they're extracted from the text and geolocated
 then merged with hand-written entries:
 
 ```
-data/raw/hdt.perseus-eng2.xml   Perseus' Godley translation (TEI), with every
-                                place tagged inline + coordinates + book/chapter
+data/raw/hdt.perseus-eng2.xml   Perseus' Godley translation (TEI): every place
+                                (type=place) AND people (type=ethnic) tagged
+                                inline + coordinates + book/chapter
 data/raw/tt_places.geojson      ToposText gazetteer (Greek names, Pleiades ids)
+data/raw/pleiades-places.csv.gz Pleiades gazetteer (ancient regions & peoples)
 
-extract.py     TEI  -> data/places_raw.json   (977 named places; 324 with coords,
-               aggregated by place with mention counts + book.chapter refs)
-build_data.py  places_raw + ToposText + the 45 curated entries
-               -> src/data_places.js  (HERODOTUS.places = [...387])
-                  · recovers coords for no-coord places via ToposText name-match
-                  · dedupes Perseus' multi-key duplicates
+extract.py     TEI  -> data/places_raw.json   (1600+ named places & peoples,
+               aggregated with mention counts + book.chapter refs)
+build_data.py  places_raw + ToposText + Pleiades + the 45 curated entries
+               -> src/data_places.js  (HERODOTUS.places = [...~580])
+                  · geocodes no-coord names via ToposText, then Pleiades
+                    (loose/ethnonym matching: Siphnus↔Siphnos, Paphlagonians↔Paphlagonia)
+                  · dedupes multi-key + region/people pairs
                   · scrubs modern/anachronistic geocodes (Constantinople→Byzantium,
-                    Luxor→Thebes, Assuan→Syene; drops Cairo, Suez, Crimea, …)
-                  · categorises by feature type, ranks by mentions into zoom tiers
+                    Luxor→Thebes; drops Cairo, Suez, Crimea, …)
+                  · qualifies duplicates by area (Naxos (Sicily) / (the Cyclades))
+                  · categorises (regions/peoples = area labels), ranks by mentions
                   · merges hand-authored blurbs/quotes (data/places_curated.json)
 ```
 

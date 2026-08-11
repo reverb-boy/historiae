@@ -59,7 +59,7 @@ def main():
         if key not in places:
             places[key] = {
                 "key": key, "names": Counter(), "lat": None, "lng": None,
-                "feats": Counter(), "count": 0, "refs": [], "refset": set(),
+                "feats": Counter(), "kinds": Counter(), "count": 0, "refs": [], "refset": set(),
             }
         return places[key]
 
@@ -71,7 +71,10 @@ def main():
         for ch in book.findall(".//t:div[@subtype='chapter']", NS):
             cn = ch.get("n")
             ref = f"{bn}.{cn}"
-            for nm in ch.findall(".//t:name[@type='place']", NS):
+            for nm in ch.findall(".//t:name", NS):
+                typ = nm.get("type")
+                if typ not in ("place", "ethnic"):   # ethnic = peoples/tribes
+                    continue
                 key = nm.get("key") or ""
                 ancient = ancient_name(nm)
                 reg = nm.find("t:reg", NS)
@@ -82,6 +85,7 @@ def main():
                     # fall back to ancient name as identity so unkeyed still merge
                     key = "name:" + (ancient or regtext or "?").lower()
                 r = rec(key)
+                r["kinds"][typ] += 1
                 if ancient:
                     r["names"][ancient] += 1
                 if feat:
@@ -101,8 +105,9 @@ def main():
         if not name:
             continue
         feat = r["feats"].most_common(1)[0][0] if r["feats"] else "Perseus"
+        kind = r["kinds"].most_common(1)[0][0] if r["kinds"] else "place"
         out.append({
-            "key": r["key"], "name": name,
+            "key": r["key"], "name": name, "kind": kind,
             "lat": round(r["lat"], 4) if r["lat"] is not None else None,
             "lng": round(r["lng"], 4) if r["lng"] is not None else None,
             "feat": feat, "mentions": r["count"], "refs": r["refs"],
