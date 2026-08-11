@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Historiae · the world of Herodotus</title>
+<style>
+/* ==== Leaflet ==== */
+{{LEAFLET_CSS}}
+/* ==== App ==== */
+{{APP_CSS}}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div id="topbar">
+    <div class="brand">
+      <h1>HISTORIAE</h1>
+      <span class="sub">the world of Herodotus, mapped from the nine books</span>
+    </div>
+    <div class="spacer"></div>
+    <button class="topbtn" id="btn-sepia" title="Antique parchment tint">◑ Sepia</button>
+    <button class="topbtn" id="btn-help" title="About this map">? About</button>
+  </div>
+
+  <div id="body">
+    <div id="map"></div>
+    <div id="zoomhint"></div>
+
+    <!-- always-visible legend, top-left over the map -->
+    <div id="legendbox">
+      <div class="lb-title">Legend</div>
+      <div class="legend" id="legend"><!-- legend injected --></div>
+    </div>
+
+    <!-- always-visible layer toggles, bottom-right over the map -->
+    <div id="layerbox">
+      <div class="lb-title">Layers</div>
+      <div class="toggle on" data-layer="places">
+        <span class="box"></span><span>Places</span><span class="count" id="count-places"></span>
+      </div>
+      <div class="toggle on" data-layer="peoples">
+        <span class="box"></span><span>Peoples &amp; nations</span><span class="count" id="count-peoples"></span>
+      </div>
+      <div class="toggle on" data-layer="basemap">
+        <span class="box"></span><span>Modern places &amp; borders</span>
+      </div>
+    </div>
+
+    <div id="panel">
+      <div class="search-wrap">
+        <input id="search" type="text" autocomplete="off" spellcheck="false"
+               placeholder="Search places &amp; peoples…">
+        <div id="suggest"></div>
+      </div>
+
+      <div id="controls">
+        <div class="section">
+          <h2>Filter by book</h2>
+          <div class="books" id="book-chips"><!-- chips injected --></div>
+          <div class="book-hint" id="book-hint"></div>
+        </div>
+
+        <div class="credit" id="credit"></div>
+      </div>
+
+      <!-- info card slides over the panel -->
+      <div id="info">
+        <div class="info-head">
+          <div class="top" style="flex-direction:column">
+            <button class="info-back" id="info-back">‹ Back to map</button>
+            <h2 id="info-title"></h2>
+          </div>
+          <div class="aka" id="info-aka"></div>
+          <div class="badges" id="info-badges"></div>
+        </div>
+        <div class="info-body" id="info-body"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- intro -->
+  <div id="intro">
+    <div class="intro-card">
+      <h2>The World of Herodotus</h2>
+      <p class="lead">"…that time may not draw the colour from what men have brought into being." — the proem, 1.1</p>
+      <p>Every place named in the <i>Histories</i> — over four hundred cities, sanctuaries,
+         battlefields, rivers, islands, and the far-off nations at the edges of the earth — mapped at its
+         real location, drawn from the text itself.</p>
+      <ul>
+        <li><b>Zoom in</b> to reveal more: the great places show first, the lesser ones as you go deeper.</li>
+        <li><b>Click</b> any marker for its story, its citations, and a cited passage.</li>
+        <li><b>Search</b> for any place or people — the map flies there and marks it.</li>
+        <li><b>Filter by book</b> (I–IX), <b>toggle "Modern places &amp; borders"</b> for bare terrain, or <b>Sepia</b> for an antique tone.</li>
+      </ul>
+      <button class="go" id="intro-go">Enter the map →</button>
+      <div style="clear:both"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+{{LEAFLET_JS}}
+</script>
+<script>
+{{DATA_JS}}
+</script>
+<script>
+{{DATA_PLACES_JS}}
+</script>
+<script>
+{{APP_JS}}
+</script>
+</body>
+</html>

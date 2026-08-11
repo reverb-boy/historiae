@@ -1,0 +1,829 @@
+[
+ {
+  "id": "athens",
+  "name": "Athens",
+  "aka": "Ἀθῆναι · Athína",
+  "lat": 37.9838,
+  "lng": 23.7275,
+  "cat": "city",
+  "region": "Hellas (Attica)",
+  "books": [
+   1,
+   5,
+   6,
+   7,
+   8,
+   9
+  ],
+  "blurb": "The rising democracy at the story's heart. Cleisthenes' reforms set the tribes in order; Athens burns Sardis, wins at Marathon, is itself sacked by Xerxes, then triumphs at Salamis.",
+  "quote": {
+   "text": "Herodotus calls the Athenians the saviours of Hellas — whichever side they joined would prevail; choosing freedom, they turned back the King.",
+   "cite": "7.139"
+  }
+ },
+ {
+  "id": "sparta",
+  "name": "Sparta",
+  "aka": "Λακεδαίμων · Lacedaemon",
+  "lat": 37.0748,
+  "lng": 22.4302,
+  "cat": "city",
+  "region": "Hellas (Laconia)",
+  "books": [
+   1,
+   5,
+   6,
+   7,
+   9
+  ],
+  "blurb": "The pre-eminent land power of Greece, ruled by two kings at once and bound by iron custom. Leonidas leads the stand at Thermopylae; Pausanias commands at Plataea.",
+  "quote": {
+   "text": "To Xerxes' demand for earth and water the Spartans answered by throwing his heralds down a well — 'take your earth and water there.'",
+   "cite": "7.133"
+  }
+ },
+ {
+  "id": "delphi",
+  "name": "Delphi",
+  "aka": "Δελφοί — Oracle of Apollo",
+  "lat": 38.4824,
+  "lng": 22.501,
+  "cat": "sanctuary",
+  "region": "Hellas (Phocis)",
+  "books": [
+   1,
+   5,
+   7,
+   8
+  ],
+  "blurb": "The navel of the Greek world, whose ambiguous oracle steers the whole history. Croesus tests it, then is ruined by it; Athens is told to trust its 'wooden walls.'",
+  "quote": {
+   "text": "'If Croesus crosses the Halys he will destroy a great empire.' He crossed — and destroyed his own.",
+   "cite": "1.53"
+  }
+ },
+ {
+  "id": "olympia",
+  "name": "Olympia",
+  "aka": "Ὀλυμπία",
+  "lat": 37.6383,
+  "lng": 21.63,
+  "cat": "sanctuary",
+  "region": "Hellas (Elis)",
+  "books": [
+   2,
+   5,
+   6,
+   8
+  ],
+  "blurb": "Home of the games that measure Greek time. Persian deserters, hearing the prize is only an olive wreath, marvel at men who compete not for money but for honour.",
+  "quote": {
+   "text": "'What manner of men are these you have brought us to fight — who contend not for money but for glory?'",
+   "cite": "8.26"
+  }
+ },
+ {
+  "id": "corinth",
+  "name": "Corinth",
+  "aka": "Κόρινθος",
+  "lat": 37.906,
+  "lng": 22.879,
+  "cat": "city",
+  "region": "Hellas (Isthmus)",
+  "books": [
+   1,
+   3,
+   5,
+   8
+  ],
+  "blurb": "Wealthy trading city astride the Isthmus, once ruled by the tyrant Periander. Its admiral Adeimantus quarrels with Themistocles on the eve of Salamis.",
+  "quote": {
+   "text": "Periander, one of the Seven Sages, is also the tyrant who sent to the oracle of the dead to question his murdered wife.",
+   "cite": "5.92"
+  }
+ },
+ {
+  "id": "argos",
+  "name": "Argos",
+  "aka": "Ἄργος",
+  "lat": 37.6314,
+  "lng": 22.7194,
+  "cat": "city",
+  "region": "Hellas (Argolis)",
+  "books": [
+   1,
+   6,
+   7
+  ],
+  "blurb": "Ancient rival of Sparta. Bled white by an earlier defeat, Argos sits out the Persian War — demanding joint command as its price for joining, and refused.",
+  "quote": {
+   "text": "The Argives said they would rather be subject to the barbarians than yield precedence to the Spartans.",
+   "cite": "7.149"
+  }
+ },
+ {
+  "id": "thebes-boeotia",
+  "name": "Thebes (Boeotia)",
+  "aka": "Θῆβαι",
+  "lat": 38.3211,
+  "lng": 23.3186,
+  "cat": "city",
+  "region": "Hellas (Boeotia)",
+  "books": [
+   5,
+   7,
+   8,
+   9
+  ],
+  "blurb": "The great Boeotian city that 'medized' — went over to the King. Its cavalry rides with the Persians until the reckoning at nearby Plataea.",
+  "quote": {
+   "text": "At Thermopylae the Thebans, Herodotus says, were kept in the line against their will, and deserted to the Persians when they could.",
+   "cite": "7.222"
+  }
+ },
+ {
+  "id": "marathon",
+  "name": "Marathon",
+  "aka": "Μαραθών — battle, 490 BC",
+  "lat": 38.1531,
+  "lng": 23.9633,
+  "cat": "battle",
+  "region": "Hellas (Attica)",
+  "books": [
+   6
+  ],
+  "blurb": "The plain where the Athenians and Plataeans, without cavalry or archers, charged the Persians at a run and threw them back into the sea — the first Greek victory over the King.",
+  "quote": {
+   "text": "They were the first Greeks who dared to look upon Median dress and the men who wore it, for till then the very name of the Mede was a terror.",
+   "cite": "6.112"
+  }
+ },
+ {
+  "id": "thermopylae",
+  "name": "Thermopylae",
+  "aka": "Θερμοπύλαι — battle, 480 BC",
+  "lat": 38.7967,
+  "lng": 22.5378,
+  "cat": "battle",
+  "region": "Hellas (Malis)",
+  "books": [
+   7
+  ],
+  "blurb": "The 'Hot Gates,' a narrow pass between mountain and sea. Leonidas and his 300 Spartans, betrayed by the mountain path, die to the last man holding it.",
+  "quote": {
+   "text": "Told the Persian arrows would blot out the sun, Dieneces replied: 'Good — then we shall fight in the shade.'",
+   "cite": "7.226"
+  }
+ },
+ {
+  "id": "salamis",
+  "name": "Salamis",
+  "aka": "Σαλαμίς — sea-battle, 480 BC",
+  "lat": 37.96,
+  "lng": 23.49,
+  "cat": "battle",
+  "region": "Saronic Gulf",
+  "books": [
+   8
+  ],
+  "blurb": "In these narrow straits Themistocles lured the vast Persian fleet into water where numbers could not tell. Xerxes watched from a throne on the shore as his ships were wrecked.",
+  "quote": {
+   "text": "The Greeks fought in order and kept their line; the barbarians neither kept formation nor did anything with sense.",
+   "cite": "8.86"
+  }
+ },
+ {
+  "id": "plataea",
+  "name": "Plataea",
+  "aka": "Πλάταια — battle, 479 BC",
+  "lat": 38.2186,
+  "lng": 23.2711,
+  "cat": "battle",
+  "region": "Hellas (Boeotia)",
+  "books": [
+   9
+  ],
+  "blurb": "The last great land battle, where Pausanias' allied army destroyed Mardonius' host. With Mardonius dead, the Persian invasion of Greece was finished.",
+  "quote": {
+   "text": "Pausanias won the fairest victory of all we know — over Mardonius and the flower of the Persian army.",
+   "cite": "9.64"
+  }
+ },
+ {
+  "id": "artemisium",
+  "name": "Artemisium",
+  "aka": "Ἀρτεμίσιον — naval action, 480 BC",
+  "lat": 39.017,
+  "lng": 23.31,
+  "cat": "battle",
+  "region": "North Euboea",
+  "books": [
+   7,
+   8
+  ],
+  "blurb": "The cape off northern Euboea where the Greek fleet first fought the Persians at sea, on the same days as Thermopylae, before falling back to Salamis.",
+  "quote": {
+   "text": "A great storm off the 'Ovens' wrecked much of the Persian fleet before the fighting even began; the Greeks said Poseidon was their ally.",
+   "cite": "8.13"
+  }
+ },
+ {
+  "id": "samos",
+  "name": "Samos",
+  "aka": "Σάμος",
+  "lat": 37.7548,
+  "lng": 26.8319,
+  "cat": "city",
+  "region": "Ionian islands",
+  "books": [
+   3,
+   4,
+   6,
+   9
+  ],
+  "blurb": "Island of the tyrant Polycrates, whose unbroken luck frightened his allies. He threw his most precious ring into the sea to court misfortune — and a fisherman brought it back inside a fish.",
+  "quote": {
+   "text": "Amasis broke off his friendship with Polycrates, unwilling to grieve later for a friend whom fortune favoured too much.",
+   "cite": "3.43"
+  }
+ },
+ {
+  "id": "naxos",
+  "name": "Naxos",
+  "aka": "Νάξος",
+  "lat": 37.1036,
+  "lng": 25.48,
+  "cat": "city",
+  "region": "Cyclades",
+  "books": [
+   5,
+   6
+  ],
+  "blurb": "The prosperous island whose attempted conquest, botched by Aristagoras of Miletus, lit the fuse of the Ionian Revolt against Persia.",
+  "quote": {
+   "text": "From this expedition against Naxos, which came to nothing, sprang the beginning of evils for the Greeks.",
+   "cite": "5.28"
+  }
+ },
+ {
+  "id": "delos",
+  "name": "Delos",
+  "aka": "Δῆλος — birthplace of Apollo",
+  "lat": 37.3866,
+  "lng": 25.2716,
+  "cat": "sanctuary",
+  "region": "Cyclades",
+  "books": [
+   6
+  ],
+  "blurb": "The sacred island the Persian admiral Datis spared and honoured on his way to Marathon — then it was shaken by the only earthquake Delos ever felt, an omen of the age to come.",
+  "quote": {
+   "text": "Delos was moved by an earthquake, the first and last shock down to my time — a sign, men thought, of the evils that were coming.",
+   "cite": "6.98"
+  }
+ },
+ {
+  "id": "halicarnassus",
+  "name": "Halicarnassus",
+  "aka": "Ἁλικαρνασσός — Herodotus' home",
+  "lat": 37.038,
+  "lng": 27.4241,
+  "cat": "city",
+  "region": "Caria",
+  "books": [
+   1,
+   7,
+   8
+  ],
+  "blurb": "The Dorian city of Herodotus' birth, ruled for Persia by Queen Artemisia — who fought at Salamis and whose cool advice Xerxes wished his commanders had shared.",
+  "quote": {
+   "text": "This is the setting-forth of the inquiry of Herodotus of Halicarnassus, that time may not erase what men have done.",
+   "cite": "1.1 (proem)"
+  }
+ },
+ {
+  "id": "miletus",
+  "name": "Miletus",
+  "aka": "Μίλητος",
+  "lat": 37.5305,
+  "lng": 27.2776,
+  "cat": "city",
+  "region": "Ionia",
+  "books": [
+   1,
+   5,
+   6
+  ],
+  "blurb": "Greatest of the Ionian cities, home of Thales and Hecataeus. Its tyrant Aristagoras raised the Ionian Revolt; when it failed, Persia razed the city and its fall was mourned on the Athenian stage.",
+  "quote": {
+   "text": "When Phrynichus staged 'The Capture of Miletus' the Athenians wept and fined him — for reminding them of their own kin's misfortunes.",
+   "cite": "6.21"
+  }
+ },
+ {
+  "id": "ephesus",
+  "name": "Ephesus",
+  "aka": "Ἔφεσος",
+  "lat": 37.9395,
+  "lng": 27.3403,
+  "cat": "city",
+  "region": "Ionia",
+  "books": [
+   1,
+   2,
+   5,
+   8
+  ],
+  "blurb": "Wealthy Ionian city of the great temple of Artemis, and the western end of the road up-country to Sardis. Croesus, taking the city, dedicated most of its columns.",
+  "quote": {
+   "text": "The Ephesians, when besieged by Croesus, dedicated their city to Artemis by tying a rope from the temple to the wall.",
+   "cite": "1.26"
+  }
+ },
+ {
+  "id": "sardis",
+  "name": "Sardis",
+  "aka": "Σάρδις — Lydian capital",
+  "lat": 38.4885,
+  "lng": 28.0403,
+  "cat": "capital",
+  "region": "Lydia",
+  "books": [
+   1,
+   5,
+   7
+  ],
+  "blurb": "Croesus' golden capital below Mt. Tmolus, taken by Cyrus and made the seat of Persian power in the west. Burned in the Ionian Revolt — the spark that drew Persia toward Greece.",
+  "quote": {
+   "text": "Solon warned rich Croesus here to 'count no man happy until he is dead' — a saying he understood only on the pyre.",
+   "cite": "1.32"
+  }
+ },
+ {
+  "id": "pteria",
+  "name": "Pteria",
+  "aka": "Πτερίη — battle, 547 BC",
+  "lat": 40.02,
+  "lng": 34.615,
+  "cat": "battle",
+  "region": "Cappadocia",
+  "books": [
+   1
+  ],
+  "blurb": "The strong Cappadocian district beyond the Halys where Croesus and Cyrus fought a bloody, indecisive battle. Croesus withdrew to Sardis for the winter — and Cyrus followed unseasonably fast.",
+  "quote": {
+   "text": "The armies fought hard and neither won; when night parted them, Croesus, outnumbered, drew off.",
+   "cite": "1.76"
+  }
+ },
+ {
+  "id": "cnidus",
+  "name": "Cnidus",
+  "aka": "Κνίδος",
+  "lat": 36.6847,
+  "lng": 27.3745,
+  "cat": "city",
+  "region": "Caria",
+  "books": [
+   1,
+   2
+  ],
+  "blurb": "Dorian city on a narrow neck of land. Its people began to dig a canal to make their home an island against Cyrus — until the oracle told them to stop.",
+  "quote": {
+   "text": "'Do not wall off or dig through the isthmus; Zeus would have made an island had he wished it.'",
+   "cite": "1.174"
+  }
+ },
+ {
+  "id": "sinope",
+  "name": "Sinope",
+  "aka": "Σινώπη",
+  "lat": 42.0231,
+  "lng": 35.1531,
+  "cat": "city",
+  "region": "Black Sea coast",
+  "books": [
+   1,
+   2,
+   4
+  ],
+  "blurb": "The greatest Greek colony on the southern Black Sea, near where the Halys reaches the water — a marker of how far Ionian trade and settlement had spread.",
+  "quote": {
+   "text": "The Cimmerians, fleeing the Scythians along the coast, settled the peninsula where the Greek city of Sinope now stands.",
+   "cite": "4.12"
+  }
+ },
+ {
+  "id": "susa",
+  "name": "Susa",
+  "aka": "Σοῦσα — the King's seat",
+  "lat": 32.1897,
+  "lng": 48.2578,
+  "cat": "capital",
+  "region": "Persia (Elam)",
+  "books": [
+   1,
+   3,
+   5,
+   7,
+   8
+  ],
+  "blurb": "The administrative heart of the Persian Empire and terminus of the Royal Road. From here Darius and Xerxes send out their armies, and here the King's word becomes the world's.",
+  "quote": {
+   "text": "From Sardis to Susa the Royal Road runs 111 stations and 90 days' journey; nothing mortal travels faster than the King's couriers.",
+   "cite": "5.52 / 8.98"
+  }
+ },
+ {
+  "id": "ecbatana",
+  "name": "Ecbatana",
+  "aka": "Ἀγβάτανα — Median capital",
+  "lat": 34.7983,
+  "lng": 48.5148,
+  "cat": "capital",
+  "region": "Media",
+  "books": [
+   1,
+   3
+  ],
+  "blurb": "The Median royal city Deioces built with seven concentric walls, each ring painted a different colour, gold and silver at the centre — the image of power drawing itself apart from the ruled.",
+  "quote": {
+   "text": "Deioces ringed his palace with seven walls, and made it law that none should approach the king, but deal with him only through messengers.",
+   "cite": "1.98"
+  }
+ },
+ {
+  "id": "babylon",
+  "name": "Babylon",
+  "aka": "Βαβυλών",
+  "lat": 32.5364,
+  "lng": 44.421,
+  "cat": "city",
+  "region": "Mesopotamia",
+  "books": [
+   1,
+   3
+  ],
+  "blurb": "The vast square city on the Euphrates, its walls so wide a four-horse chariot could turn atop them. Cyrus took it by diverting the river; it revolted under Darius and was retaken by the ruse of Zopyrus.",
+  "quote": {
+   "text": "Babylon so far surpasses every city we know in splendour that Herodotus pauses to describe its walls, its river, and its strange customs at length.",
+   "cite": "1.178"
+  }
+ },
+ {
+  "id": "nineveh",
+  "name": "Nineveh",
+  "aka": "Νίνος — the fallen Assyrian city",
+  "lat": 36.3597,
+  "lng": 43.1522,
+  "cat": "city",
+  "region": "Assyria",
+  "books": [
+   1,
+   2
+  ],
+  "blurb": "The former seat of the Assyrian Empire on the Tigris, already a ruin in Herodotus' day — a reminder that empires fall. He promises a fuller 'Assyrian account' the surviving books never give.",
+  "quote": {
+   "text": "After the Medes took Nineveh and subdued the Assyrians (save the district of Babylon), they held sway over upper Asia.",
+   "cite": "1.106"
+  }
+ },
+ {
+  "id": "memphis",
+  "name": "Memphis",
+  "aka": "Μέμφις",
+  "lat": 29.8449,
+  "lng": 31.2529,
+  "cat": "city",
+  "region": "Egypt (Lower)",
+  "books": [
+   2,
+   3
+  ],
+  "blurb": "The great city at the junction of Upper and Lower Egypt, where Herodotus questioned the priests. Here Cambyses, having conquered Egypt, is said to have stabbed the sacred Apis bull in his madness.",
+  "quote": {
+   "text": "Cambyses, mocking the Egyptians' joy at the new Apis, ran the bull through the thigh — and thereafter, the Egyptians say, was utterly mad.",
+   "cite": "3.29"
+  }
+ },
+ {
+  "id": "thebes-egypt",
+  "name": "Thebes (Egypt)",
+  "aka": "Θῆβαι — Waset",
+  "lat": 25.7188,
+  "lng": 32.6573,
+  "cat": "city",
+  "region": "Egypt (Upper)",
+  "books": [
+   2
+  ],
+  "blurb": "Egypt's ancient religious capital, where the priests showed Herodotus 341 colossal statues of high priests, father to son, as proof of the immense antiquity of their land.",
+  "quote": {
+   "text": "The priests reckoned 341 generations of men, and in all that time, they said, no god had ever appeared in human form.",
+   "cite": "2.142"
+  }
+ },
+ {
+  "id": "naucratis",
+  "name": "Naucratis",
+  "aka": "Ναύκρατις",
+  "lat": 30.8983,
+  "lng": 30.5877,
+  "cat": "city",
+  "region": "Nile Delta",
+  "books": [
+   2
+  ],
+  "blurb": "The single port where Amasis allowed the Greeks to trade and settle in Egypt — a Greek town on the Nile, with temples the Ionian and Dorian cities built together.",
+  "quote": {
+   "text": "In old days Naucratis was the only trading-port in Egypt; any Greek who put in elsewhere had to swear he came unwillingly.",
+   "cite": "2.179"
+  }
+ },
+ {
+  "id": "elephantine",
+  "name": "Elephantine",
+  "aka": "Ἐλεφαντίνη",
+  "lat": 24.0889,
+  "lng": 32.8894,
+  "cat": "city",
+  "region": "Egypt (frontier)",
+  "books": [
+   2,
+   3
+  ],
+  "blurb": "Egypt's southern frontier at the First Cataract, the limit of Herodotus' own travels. Beyond it lay only report — of the Nile's unknown springs and the long road to Ethiopia.",
+  "quote": {
+   "text": "As far as Elephantine I saw with my own eyes; beyond that I learned by inquiry and hearsay.",
+   "cite": "2.29"
+  }
+ },
+ {
+  "id": "heliopolis",
+  "name": "Heliopolis",
+  "aka": "Ἡλίου πόλις — 'City of the Sun'",
+  "lat": 30.129,
+  "lng": 31.289,
+  "cat": "city",
+  "region": "Nile Delta",
+  "books": [
+   2
+  ],
+  "blurb": "The city whose priests Herodotus judged the most learned in Egypt, and whose reckoning of the year — twelve months of thirty days, plus five — he thought wiser than the Greek calendar.",
+  "quote": {
+   "text": "The men of Heliopolis are said to be the most learned in records of the Egyptians.",
+   "cite": "2.3"
+  }
+ },
+ {
+  "id": "siwa",
+  "name": "Siwa (Oracle of Ammon)",
+  "aka": "Ἄμμων",
+  "lat": 29.2032,
+  "lng": 25.5195,
+  "cat": "sanctuary",
+  "region": "Libyan Desert",
+  "books": [
+   1,
+   2,
+   3
+  ],
+  "blurb": "The remote desert oracle of Zeus-Ammon. Cambyses sent 50,000 men to enslave it; a great sandstorm buried the whole army in the desert, and it was never seen again.",
+  "quote": {
+   "text": "A violent wind rose as they ate, and the sand overwhelmed them; so the army of Cambyses vanished utterly.",
+   "cite": "3.26"
+  }
+ },
+ {
+  "id": "buto",
+  "name": "Buto (Oracle of Leto)",
+  "aka": "Βουτώ",
+  "lat": 31.2,
+  "lng": 30.745,
+  "cat": "sanctuary",
+  "region": "Nile Delta",
+  "books": [
+   2
+  ],
+  "blurb": "Marsh-city of the oracle Herodotus rated the truest in Egypt, and site of a temple he describes with wonder — a shrine cut from a single block of stone.",
+  "quote": {
+   "text": "The oracle of Leto at Buto is held by the Egyptians to be the most truthful of all their oracles.",
+   "cite": "2.155"
+  }
+ },
+ {
+  "id": "cyrene",
+  "name": "Cyrene",
+  "aka": "Κυρήνη",
+  "lat": 32.825,
+  "lng": 21.8583,
+  "cat": "city",
+  "region": "Libya (Cyrenaica)",
+  "books": [
+   2,
+   3,
+   4
+  ],
+  "blurb": "The Greek colony in Libya founded, on Delphi's insistence, by Battus and the men of Thera. Its story — drought, oracle, and a stammering king made ruler of a new land — fills much of Book 4.",
+  "quote": {
+   "text": "The Pythia told Battus, who had come to ask about his voice, to found a city in Libya instead — and would not be gainsaid.",
+   "cite": "4.155"
+  }
+ },
+ {
+  "id": "pillars",
+  "name": "Pillars of Heracles",
+  "aka": "Ἡράκλειαι στῆλαι — Gibraltar",
+  "lat": 36.1408,
+  "lng": -5.3536,
+  "cat": "landmark",
+  "region": "The Western Strait",
+  "books": [
+   1,
+   2,
+   4,
+   8
+  ],
+  "blurb": "The gateway where the inner sea meets the encircling Ocean — the western edge of the mapped world. Beyond lay Gades, Tartessus, and the deep unknown.",
+  "quote": {
+   "text": "The Phoenician circumnavigators, Herodotus reports, sailed out past the Pillars and came home by the Nile — with the sun, they said, on their right.",
+   "cite": "4.42"
+  }
+ },
+ {
+  "id": "gades",
+  "name": "Gades",
+  "aka": "Γάδειρα — Cádiz",
+  "lat": 36.5271,
+  "lng": -6.2886,
+  "cat": "city",
+  "region": "Beyond the Pillars",
+  "books": [
+   4
+  ],
+  "blurb": "Phoenician city on the ocean side of the Pillars, at the limit of trade — near the silver-rich land of Tartessus, where a Samian ship was once blown and came home rich.",
+  "quote": {
+   "text": "Colaeus of Samos, driven past the Pillars to Tartessus, made the greatest profit any Greek trader ever won.",
+   "cite": "4.152"
+  }
+ },
+ {
+  "id": "tartessus",
+  "name": "Tartessus",
+  "aka": "Ταρτησσός",
+  "lat": 37,
+  "lng": -6.35,
+  "cat": "landmark",
+  "region": "Beyond the Pillars",
+  "books": [
+   1,
+   4
+  ],
+  "blurb": "A wealthy, half-legendary kingdom in the far west of Iberia, ruled by the long-lived Arganthonius, who befriended the Phocaeans and offered them a home against the coming of the Persians.",
+  "quote": {
+   "text": "Arganthonius, king of Tartessus, reigned eighty years and lived a hundred and twenty, the Phocaeans said.",
+   "cite": "1.163"
+  }
+ },
+ {
+  "id": "tyre",
+  "name": "Tyre",
+  "aka": "Τύρος",
+  "lat": 33.2705,
+  "lng": 35.2038,
+  "cat": "city",
+  "region": "Phoenicia",
+  "books": [
+   2
+  ],
+  "blurb": "Ancient Phoenician mother-city. Herodotus sailed here himself to settle a question about Heracles, and the priests told him the temple was as old as the city — some 2,300 years.",
+  "quote": {
+   "text": "I went to Tyre and saw the temple richly furnished; the priests said it was founded when Tyre was, 2,300 years before.",
+   "cite": "2.44"
+  }
+ },
+ {
+  "id": "sidon",
+  "name": "Sidon",
+  "aka": "Σιδών",
+  "lat": 33.5606,
+  "lng": 35.3756,
+  "cat": "city",
+  "region": "Phoenicia",
+  "books": [
+   3,
+   7,
+   8
+  ],
+  "blurb": "Phoenician city that furnished the finest ships in Xerxes' fleet. In the King's own galley the place of honour went to the Sidonians; their king sat nearest to Xerxes.",
+  "quote": {
+   "text": "When Xerxes reviewed his fleet, the best sailers were the Phoenician ships, and of these the Sidonian.",
+   "cite": "7.96"
+  }
+ },
+ {
+  "id": "olbia",
+  "name": "Borysthenes (Olbia)",
+  "aka": "Ὀλβίη — the Dnieper emporium",
+  "lat": 46.69,
+  "lng": 31.9,
+  "cat": "city",
+  "region": "Scythia",
+  "books": [
+   4
+  ],
+  "blurb": "The Greek trading-town at the mouth of the Borysthenes (Dnieper), gateway to the Scythian interior. Here the Scythian king Scyles secretly kept a Greek house — and lost his throne for it.",
+  "quote": {
+   "text": "The Borysthenes is the most useful of rivers: sweetest to drink, with the finest pastures and the greatest fish, and salt pans at its mouth.",
+   "cite": "4.53"
+  }
+ },
+ {
+  "id": "ister-mouth",
+  "name": "Mouth of the Ister",
+  "aka": "Ἴστρος — the Danube",
+  "lat": 45.18,
+  "lng": 29.67,
+  "cat": "river",
+  "region": "Scythia / Thrace",
+  "books": [
+   4
+  ],
+  "blurb": "The greatest river Herodotus knew, which he believed ran clean across Europe. At its mouth Darius' Ionians held the bridge of boats while the King chased the Scythians in vain.",
+  "quote": {
+   "text": "The Ister is the greatest of all rivers we know, flowing ever with the same volume, summer and winter alike.",
+   "cite": "4.48"
+  }
+ },
+ {
+  "id": "colchis",
+  "name": "Colchis (Phasis)",
+  "aka": "Κολχίς",
+  "lat": 42.15,
+  "lng": 41.67,
+  "cat": "landmark",
+  "region": "Eastern Black Sea",
+  "books": [
+   1,
+   2,
+   4
+  ],
+  "blurb": "The land at the far eastern edge of the Black Sea, mouth of the river Phasis. Seeing the Colchians dark-skinned and circumcised, Herodotus argued they must be descendants of Egyptian soldiers.",
+  "quote": {
+   "text": "The Colchians are Egyptians — I judged it myself, for they are dark-skinned and curly-haired, and alone with the Egyptians practise circumcision.",
+   "cite": "2.104"
+  }
+ },
+ {
+  "id": "araxes",
+  "name": "The Araxes",
+  "aka": "Ἀράξης — Massagetae frontier",
+  "lat": 39.9,
+  "lng": 48.3,
+  "cat": "river",
+  "region": "East of the Caspian",
+  "books": [
+   1
+  ],
+  "blurb": "The river beyond which lived the Massagetae. Cyrus crossed it against Queen Tomyris' warning — and met his death in the last campaign of his life.",
+  "quote": {
+   "text": "'Rule your own and endure to see me rule mine,' Tomyris warned. 'But you will not; you are no lover of peace.'",
+   "cite": "1.206"
+  }
+ },
+ {
+  "id": "halys",
+  "name": "The Halys",
+  "aka": "Ἅλυς — the great boundary",
+  "lat": 41.72,
+  "lng": 36.02,
+  "cat": "river",
+  "region": "Central Anatolia",
+  "books": [
+   1
+  ],
+  "blurb": "The river that once divided Lydia from Media, and so the western world from the eastern. To cross it was to cross into another empire — as Croesus learned to his ruin.",
+  "quote": {
+   "text": "The Halys was the boundary of the Lydian and Median realms; Croesus crossed it and destroyed his own kingdom.",
+   "cite": "1.72"
+  }
+ },
+ {
+  "id": "india",
+  "name": "India (the Indus)",
+  "aka": "Ἰνδική — the eastern limit",
+  "lat": 29,
+  "lng": 70,
+  "cat": "landmark",
+  "region": "The Far East",
+  "books": [
+   3,
+   4
+  ],
+  "blurb": "The easternmost of peopled lands, beyond which lies only desert. Herodotus reports its many nations, its gold gathered by giant ants, and the voyage of Scylax down the Indus at Darius' command.",
+  "quote": {
+   "text": "India is the last inhabited land toward the east; beyond it all is sand and empty desert.",
+   "cite": "3.98"
+  }
+ }
+]
