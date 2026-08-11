@@ -39,11 +39,10 @@ def main() -> None:
 
     # Leaflet resolves marker-image URLs relative to the page; we use no default
     # image markers (divIcon / circleMarker only), so no assets are required.
-    dest = ROOT / "herodotus-map.html"
-    dest.write_text(out, encoding="utf-8")
-
     kb = len(out.encode("utf-8")) / 1024
-    print(f"wrote {dest.name}  ({kb:.0f} KB)")
+    for name in ("herodotus-map.html", "index.html"):   # index.html = GitHub Pages entry
+        (ROOT / name).write_text(out, encoding="utf-8")
+        print(f"wrote {name}  ({kb:.0f} KB)")
     print(f"  places : {out.count('lat:')}")  # rough sanity signal
 
 

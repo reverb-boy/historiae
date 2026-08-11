@@ -355,7 +355,7 @@
     if (!refs || !refs.length) return "";
     const shown = refs.slice(0, 24).map(function (r) { return '<span class="r">' + esc(r) + "</span>"; }).join("");
     const more = refs.length > 24 ? " <span class=\"r\">+" + (refs.length - 24) + " more</span>" : "";
-    return '<div class="refs"><b>Named at</b> ' + shown + more + "</div>";
+    return '<div class="refs"><b>Mentioned at</b> ' + shown + more + "</div>";
   }
 
   function selectPlace(p) {
@@ -371,12 +371,8 @@
     if (p.blurb) {
       body = '<p class="blurb">' + esc(p.blurb) + "</p>" + quoteBlock(p.quote) + booksLine(p.books) + refsBlock(p.refs);
     } else {
-      let s = '<p class="blurb">A <b>' + cat.label.toLowerCase() + "</b>";
-      if (p.region) s += " in " + esc(p.region);
-      s += " named in Herodotus’ <i>Histories</i>";
-      s += p.mentions ? " — mentioned " + p.mentions + " time" + (p.mentions > 1 ? "s" : "") + "." : ".";
-      s += "</p>";
-      body = s + refsBlock(p.refs) + booksLine(p.books);
+      // category, region, and mention count are already shown in the badges above
+      body = refsBlock(p.refs) + booksLine(p.books);
     }
     if (p.pleiades) {
       body += '<p class="ext"><a href="https://pleiades.stoa.org/places/' + esc(p.pleiades) +
