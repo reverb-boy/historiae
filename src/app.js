@@ -247,7 +247,11 @@
       hay: (d.name + " " + (d.aka || "") + " " + (d.region || "") + " " + (d.blurb || "")).toLowerCase(),
       loose: looseKey(d.name),
       color: (CAT[d.cat] || CAT.landmark).color, sub: d.region || CAT[d.cat].label };
-  });
+  }).concat((HERODOTUS.persons || []).map(function (p) {
+    return { person: p, kind: "person", name: p.name, hay: p.name.toLowerCase(),
+      loose: looseKey(p.name), color: "#7a5c8a",
+      sub: "person · " + p.mentions + " mention" + (p.mentions > 1 ? "s" : "") };
+  }));
 
   const searchWrap = searchEl.closest(".search-wrap");
   const clearBtn = document.getElementById("search-clear");
@@ -286,10 +290,10 @@
       else if (ql.length >= 3 && x.loose.indexOf(ql) === 0) s = 4;   // spelling-tolerant
       if (s >= 0) scored.push({ x: x, s: s });
     });
+    function ment(x) { return (x.rec ? x.rec.data.mentions : x.person ? x.person.mentions : 0) || 0; }
     scored.sort(function (a, b) {
       if (a.s !== b.s) return a.s - b.s;
-      const ra = a.x.rec.data.mentions || 0, rb = b.x.rec.data.mentions || 0;
-      return rb - ra;
+      return ment(b.x) - ment(a.x);
     });
     const hits = scored.slice(0, 10).map(function (o) { return o.x; });
     if (!hits.length) {
@@ -306,7 +310,7 @@
         '<span class="meta">' + esc(h.sub || h.kind) + "</span>";
       el.addEventListener("click", function () {
         searchEl.value = h.name; syncClear(); closeSuggest();
-        if (h.kind === "people") selectPeople(h.rec.data); else selectPlace(h.rec.data);
+        if (h.kind === "person") selectPerson(h.person); else selectPlace(h.rec.data);
       });
       suggestEl.appendChild(el);
     });
@@ -351,15 +355,25 @@
     if (!q) return "";
     return '<blockquote class="quote">' + esc(q.text) + '<span class="cite">— Herodotus ' + esc(q.cite) + "</span></blockquote>";
   }
-  function refsBlock(refs) {
+  function refsBlock(refs, term) {
     if (!refs || !refs.length) return "";
-    const shown = refs.slice(0, 24).map(function (r) { return '<span class="r">' + esc(r) + "</span>"; }).join("");
-    const more = refs.length > 24 ? " <span class=\"r\">+" + (refs.length - 24) + " more</span>" : "";
+    const chip = function (r) {
+      return '<span class="r ref" data-ref="' + esc(r) + '" data-term="' + esc(term || "") + '">' + esc(r) + "</span>";
+    };
+    const shown = refs.slice(0, 40).map(chip).join("");
+    const more = refs.length > 40 ? " <span class=\"r\">+" + (refs.length - 40) + " more</span>" : "";
     return '<div class="refs"><b>Mentioned at</b> ' + shown + more + "</div>";
+  }
+  function baseName(s) { return String(s || "").replace(/\s*\([^)]*\)\s*$/, "").trim(); }
+  function booksOf(refs) {
+    const s = new Set();
+    (refs || []).forEach(function (r) { const b = parseInt(r, 10); if (b) s.add(b); });
+    return Array.from(s).sort(function (a, b) { return a - b; });
   }
 
   function selectPlace(p) {
     const cat = CAT[p.cat] || CAT.landmark;
+    const term = baseName(p.name);
     infoTitle.textContent = p.name;
     infoAka.textContent = p.aka || "";
     let badges = '<span class="badge cat" style="background:' + cat.color + '">' + cat.label + "</span>";
@@ -369,10 +383,9 @@
 
     let body;
     if (p.blurb) {
-      body = '<p class="blurb">' + esc(p.blurb) + "</p>" + quoteBlock(p.quote) + booksLine(p.books) + refsBlock(p.refs);
+      body = '<p class="blurb">' + esc(p.blurb) + "</p>" + quoteBlock(p.quote) + booksLine(p.books) + refsBlock(p.refs, term);
     } else {
-      // category, region, and mention count are already shown in the badges above
-      body = refsBlock(p.refs) + booksLine(p.books);
+      body = refsBlock(p.refs, term) + booksLine(p.books);   // badges already carry cat/region/count
     }
     if (p.pleiades) {
       body += '<p class="ext"><a href="https://pleiades.stoa.org/places/' + esc(p.pleiades) +
@@ -386,37 +399,99 @@
     map.flyTo([p.lat, p.lng], Math.max(map.getZoom(), p.minZoom, 6), { duration: 0.7 });
   }
 
-  function selectPeople(p) {
+  function selectPerson(p) {
     infoTitle.textContent = p.name;
-    infoAka.textContent = "a people of Herodotus' world";
-    infoBadges.innerHTML = '<span class="badge cat" style="background:' + PEOPLE_COLOR + '">People / nation</span>';
-    infoBody.innerHTML = '<p class="blurb">' + esc(p.blurb) + "</p>" + quoteBlock(p.quote) + booksLine(p.books);
+    infoAka.textContent = "a person named in the Histories";
+    infoBadges.innerHTML = '<span class="badge cat" style="background:#7a5c8a">Person</span>' +
+      '<span class="badge">' + p.mentions + " mention" + (p.mentions > 1 ? "s" : "") + "</span>";
+    infoBody.innerHTML = refsBlock(p.refs, p.name) + booksLine(booksOf(p.refs));
     openInfo();
-    if (selectedRec) { selectedRec = null; refresh(); }   // unpin any place selection
-    highlightAt(p.lat, p.lng);
-    map.flyTo([p.lat, p.lng], Math.max(map.getZoom(), 5), { duration: 0.7 });
+    if (selectedRec) { selectedRec = null; refresh(); }   // person has no map location
+    clearHighlight();
   }
+
+  /* ======================================================================== */
+  /*  READER  (the Herodotus text)                                            */
+  /* ======================================================================== */
+  const app = document.getElementById("app");
+  const readerBody = document.getElementById("reader-body");
+  const readerTitle = document.getElementById("reader-title");
+  const readerToggle = document.getElementById("reader-toggle");
+  const BOOK_NAME = {}; (HERODOTUS.books || []).forEach(function (b) { BOOK_NAME[b.n] = b.name; });
+  let currentBook = null;
+
+  function cssId(cn) { return String(cn).replace(/[^a-z0-9]/gi, "_"); }
+  function bookLabel(bn) { return "Book " + (ROMAN[+bn] || bn) + (BOOK_NAME[+bn] ? " · " + BOOK_NAME[+bn] : ""); }
+
+  function renderBook(bn) {
+    if (currentBook === bn) return;
+    currentBook = bn;
+    let html = '<div class="rbook">' + esc(bookLabel(bn)) + "</div>";
+    (HERODOTUS_TEXT[bn] || []).forEach(function (pair) {
+      // each chapter is its own paragraph; pair[1] is pre-escaped HTML with <n> names
+      html += '<p class="rch" id="rch-' + bn + "-" + cssId(pair[0]) + '">' +
+        '<span class="rn">' + esc(pair[0]) + "</span>" + pair[1] + "</p>";
+    });
+    readerBody.innerHTML = html;
+    readerTitle.textContent = bookLabel(bn).replace(" · ", " — ");
+  }
+  function highlightChapter(bn, cn, term) {
+    // clear any previous highlight
+    readerBody.querySelectorAll(".rch.target").forEach(function (x) { x.classList.remove("target"); });
+    readerBody.querySelectorAll("n.mark").forEach(function (x) { x.classList.remove("mark"); });
+    const el = document.getElementById("rch-" + bn + "-" + cssId(cn));
+    if (!el) return;
+    el.classList.add("target");
+    if (term) {                              // mark the matching name(s) in the chapter
+      const tl = term.toLowerCase();
+      el.querySelectorAll("n").forEach(function (n) {
+        if (n.textContent.toLowerCase().indexOf(tl) !== -1) n.classList.add("mark");
+      });
+    }
+    el.scrollIntoView({ block: "center" });
+  }
+  function openReaderPanel() {
+    if (!app.classList.contains("reader-open")) {
+      app.classList.add("reader-open"); readerToggle.textContent = "‹";
+      setTimeout(function () { map.invalidateSize(); }, 280);
+    }
+  }
+  function closeReader() {
+    app.classList.remove("reader-open"); readerToggle.textContent = "›";
+    setTimeout(function () { map.invalidateSize(); }, 280);
+  }
+  function toggleReader() {
+    if (app.classList.contains("reader-open")) closeReader();
+    else { openReaderPanel(); if (!currentBook) renderBook("1"); }
+  }
+  function openReaderRef(ref, term) {
+    const dot = ref.indexOf(".");
+    if (dot < 0) return;
+    const bn = ref.slice(0, dot), cn = ref.slice(dot + 1);
+    openReaderPanel();
+    renderBook(bn);
+    highlightChapter(bn, cn, term);
+  }
+  readerToggle.addEventListener("click", toggleReader);
+  document.getElementById("reader-close").addEventListener("click", closeReader);
+  // clicking a name in the text puts it in the search bar and searches for it
+  readerBody.addEventListener("click", function (e) {
+    const n = e.target.closest("n");
+    if (!n) return;
+    e.stopPropagation();          // don't let the global handler close the suggestions
+    const q = n.textContent.trim();
+    searchEl.value = q; syncClear(); runSearch(q); searchEl.focus();
+  });
+  // clicking a "Mentioned at 1.72" chip jumps to that passage with the term marked
+  infoBody.addEventListener("click", function (e) {
+    const el = e.target.closest(".ref");
+    if (el) openReaderRef(el.dataset.ref, el.dataset.term || "");
+  });
 
   /* ======================================================================== */
   /*  TOP-BAR + INTRO                                                          */
   /* ======================================================================== */
-  // antique mode: a warm tint pane above the tiles but below markers, using
-  // multiply blending so sea stays lighter than land (unlike a flat sepia())
-  map.createPane("tint");
-  const tintPane = map.getPane("tint");
-  tintPane.style.zIndex = 250;
-  tintPane.style.mixBlendMode = "multiply";
-  tintPane.style.pointerEvents = "none";
-  const tintRect = L.rectangle([[-89, -180], [89, 180]], {
-    pane: "tint", stroke: false, fillColor: "#e7d3a1", fillOpacity: 0.8, interactive: false,
-  });
-  const sepiaBtn = document.getElementById("btn-sepia");
-  let antiqueOn = false;
-  sepiaBtn.addEventListener("click", function () {
-    antiqueOn = !antiqueOn;
-    if (antiqueOn) tintRect.addTo(map); else map.removeLayer(tintRect);
-    sepiaBtn.classList.toggle("active", antiqueOn);
-  });
+  document.getElementById("btn-reader").addEventListener("click", function () { toggleReader(); });
   const intro = document.getElementById("intro");
   document.getElementById("intro-go").addEventListener("click", function () {
     intro.classList.add("hidden"); setTimeout(function () { map.invalidateSize(); refresh(); }, 50);

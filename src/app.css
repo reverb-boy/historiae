@@ -67,22 +67,79 @@ html, body {
 .topbtn:hover { background: rgba(255,255,255,.16); }
 .topbtn.active { background: var(--gold); color: #2b2115; border-color: var(--gold); }
 
-/* ---- body: map + right panel -------------------------------------------- */
+/* ---- body: map + reader + right panel ----------------------------------- */
 #body { flex: 1; position: relative; min-height: 0; }
+:root { --panel-w: 344px; --reader-w: 0px; }
+#app.reader-open { --reader-w: min(42vw, 640px); }
 
-#map { position: absolute; inset: 0; right: var(--panel-w, 344px); background: #dfe4e0; }
-:root { --panel-w: 344px; }
+/* layout: [ panel + search | reader | map ] left-to-right */
+#map { position: absolute; top: 0; bottom: 0; right: 0;
+  left: calc(var(--panel-w) + var(--reader-w)); background: #dfe4e0; transition: left .25s ease; }
 
-/* antique tint applied to tiles only */
-/* antique mode is a warm multiply-tint pane (set up in JS) — it warms the map
-   like aged paper while preserving the light/dark contrast of sea vs. land */
+/* ---- reader (Herodotus text), in the middle ----------------------------- */
+#reader {
+  position: absolute; top: 0; bottom: 0; left: var(--panel-w);
+  width: var(--reader-w); overflow: hidden; z-index: 1050;
+  background: var(--parchment); border-right: 1px solid var(--edge);
+  box-shadow: 6px 0 22px rgba(43,33,21,.14);
+  display: flex; flex-direction: column; transition: width .25s ease;
+}
+.reader-head {
+  flex: 0 0 auto; display: flex; align-items: center; gap: 10px;
+  padding: 11px 14px; border-bottom: 1px solid var(--edge);
+  background: linear-gradient(180deg, var(--parchment-2), var(--parchment));
+}
+#reader-title { font-size: 15px; font-weight: 600; letter-spacing: .03em; white-space: nowrap; }
+#reader-close {
+  margin-left: auto; border: none; background: none; cursor: pointer;
+  font-size: 22px; line-height: 1; color: var(--ink-soft); padding: 0 2px;
+}
+#reader-close:hover { color: var(--accent); }
+.reader-body {
+  flex: 1; overflow-y: auto; padding: 14px 20px 40px;
+  font-size: 16px; line-height: 1.7; color: #33281a;
+  font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+}
+.reader-body .rch {           /* each chapter is its own paragraph */
+  margin: 0 0 .85em; padding: 3px 8px; border-radius: 5px;
+}
+.reader-body .rch.target { background: rgba(184,134,11,.12); }
+.reader-body .rn {
+  font-family: system-ui, sans-serif; font-size: 11px; font-weight: 700;
+  color: var(--accent); vertical-align: super; margin-right: 5px; user-select: none;
+}
+/* every place/people/person name is an underlined link to the search bar */
+.reader-body n {
+  text-decoration: underline; text-decoration-thickness: 1px;
+  text-decoration-color: rgba(120,90,40,.4); text-underline-offset: 2px; cursor: pointer;
+}
+.reader-body n:hover { color: var(--accent); text-decoration-color: var(--accent); }
+.reader-body n.mark {
+  background: #ffe08a; color: #3a2a08; border-radius: 2px; padding: 0 1px;
+  text-decoration-color: transparent;
+}
+.reader-body .rbook {
+  font-size: 13px; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--ink-soft); font-weight: 700; margin: 6px 0 12px; font-family: system-ui, sans-serif;
+}
+
+/* fold button on the reader ↔ map boundary (reader's right edge) */
+#reader-toggle {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  left: calc(var(--panel-w) + var(--reader-w)); z-index: 1100;
+  width: 22px; height: 54px; border: 1px solid var(--edge); border-left: none;
+  border-radius: 0 7px 7px 0; background: var(--parchment); color: var(--ink-soft);
+  cursor: pointer; font-size: 15px; box-shadow: 3px 0 10px rgba(43,33,21,.12);
+  transition: left .25s ease; display: flex; align-items: center; justify-content: center;
+}
+#reader-toggle:hover { background: var(--gold); color: #2b2115; }
 
 /* ---- right panel -------------------------------------------------------- */
 #panel {
-  position: absolute; top: 0; right: 0; bottom: 0; width: var(--panel-w, 344px);
+  position: absolute; top: 0; left: 0; bottom: 0; width: var(--panel-w, 344px);
   background: var(--parchment);
-  border-left: 1px solid var(--edge);
-  box-shadow: -4px 0 18px rgba(43,33,21,.10);
+  border-right: 1px solid var(--edge);
+  box-shadow: 4px 0 18px rgba(43,33,21,.10);
   display: flex; flex-direction: column;
   z-index: 1000;
 }
@@ -279,7 +336,7 @@ blockquote.quote .cite {
 
 /* always-visible legend, top-left over the map */
 #legendbox {
-  position: absolute; z-index: 900; top: 14px; left: 14px;
+  position: absolute; z-index: 900; top: 14px; right: 14px;
   background: rgba(244,236,216,.96); border: 1px solid var(--edge); border-radius: 10px;
   box-shadow: var(--shadow); padding: 8px 12px 9px; backdrop-filter: blur(2px); max-width: 300px;
 }
@@ -292,7 +349,7 @@ blockquote.quote .cite {
 
 /* always-visible layer toggles, bottom-right over the map */
 #layerbox {
-  position: absolute; z-index: 900; right: calc(var(--panel-w, 344px) + 14px); bottom: 22px;
+  position: absolute; z-index: 900; right: 14px; bottom: 22px;
   background: rgba(244,236,216,.96); border: 1px solid var(--edge); border-radius: 10px;
   box-shadow: var(--shadow); padding: 8px 10px 9px; backdrop-filter: blur(2px);
 }
@@ -304,10 +361,11 @@ blockquote.quote .cite {
 #layerbox .toggle .box { width: 16px; height: 16px; }
 #layerbox .toggle .count { margin-left: auto; padding-left: 12px; }
 
-/* zoom hint over the map */
+/* zoom hint centered over the map region (map is on the right) */
 #zoomhint {
-  position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%);
-  z-index: 800; pointer-events: none; opacity: 0; transition: opacity .3s;
+  position: absolute; bottom: 14px; transform: translateX(-50%);
+  left: calc(var(--panel-w) + var(--reader-w) + (100vw - var(--panel-w) - var(--reader-w)) / 2);
+  z-index: 800; pointer-events: none; opacity: 0; transition: opacity .3s, left .25s ease;
   background: rgba(43,33,21,.82); color: var(--parchment);
   font-family: system-ui, sans-serif; font-size: 12px; padding: 5px 12px; border-radius: 20px;
   white-space: nowrap; box-shadow: var(--shadow);
@@ -319,6 +377,8 @@ blockquote.quote .cite {
 .refs b { color: var(--ink); }
 .refs .r { display: inline-block; background: #fbf6e9; border: 1px solid var(--edge);
   border-radius: 4px; padding: 0 5px; margin: 0 3px 3px 0; font-family: system-ui, sans-serif; font-size: 11.5px; }
+.refs .r.ref { cursor: pointer; color: var(--accent); }
+.refs .r.ref:hover { background: var(--gold); border-color: var(--gold); color: #2b2115; }
 p.ext { margin: 4px 0 0; font-size: 13px; }
 p.ext a { color: var(--accent); text-decoration: none; }
 p.ext a:hover { text-decoration: underline; }
@@ -370,11 +430,15 @@ p.ext a:hover { text-decoration: underline; }
   border: none; border-radius: 8px; padding: 10px 20px; float: right;
 }
 .intro-card .go:hover { background: #6f2115; }
+.intro-gh { clear: both; margin: 16px 0 0; padding-top: 14px; border-top: 1px solid var(--edge-soft);
+  font-size: 13px; color: var(--ink-soft); }
+.intro-gh a { color: var(--accent); font-weight: 600; text-decoration: none; }
+.intro-gh a:hover { text-decoration: underline; }
 
 /* ---- responsive: stack panel to a bottom sheet -------------------------- */
 @media (max-width: 720px) {
   :root { --panel-w: 0px; }
-  #map { right: 0; bottom: 46vh; }
+  #map { left: 0; right: 0; top: 0; bottom: 46vh; }
   #panel {
     top: auto; left: 0; right: 0; bottom: 0; width: auto; height: 46vh;
     border-left: none; border-top: 1px solid var(--edge);
@@ -383,6 +447,10 @@ p.ext a:hover { text-decoration: underline; }
   #topbar .brand .sub { display: none; }
   #layerbox { right: 10px; bottom: calc(46vh + 10px); }
   #zoomhint { bottom: calc(46vh + 10px); }
+  /* reader takes the full screen on phones */
+  #app.reader-open { --reader-w: 100vw; }
+  #reader { right: 0; width: var(--reader-w); z-index: 1600; }
+  #reader-toggle { display: none; }
 }
 
 /* thin scrollbars */

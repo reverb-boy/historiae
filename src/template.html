@@ -20,7 +20,7 @@
       <span class="sub">the world of Herodotus, mapped from the nine books</span>
     </div>
     <div class="spacer"></div>
-    <button class="topbtn" id="btn-sepia" title="Antique parchment tint">◑ Antique</button>
+    <button class="topbtn" id="btn-reader" title="Open the reader">▤ Reader</button>
     <button class="topbtn" id="btn-help" title="About this map">? About</button>
   </div>
 
@@ -46,6 +46,16 @@
       <div class="toggle" data-layer="basemap">
         <span class="box"></span><span>Modern places &amp; borders</span>
       </div>
+    </div>
+
+    <!-- reader: the Herodotus text, opens to the right ~40% -->
+    <button id="reader-toggle" title="Show / hide the reader" aria-label="Toggle reader">›</button>
+    <div id="reader">
+      <div class="reader-head">
+        <span id="reader-title">The Histories</span>
+        <button id="reader-close" title="Close reader" aria-label="Close reader">×</button>
+      </div>
+      <div class="reader-body" id="reader-body"></div>
     </div>
 
     <div id="panel">
@@ -79,10 +89,13 @@
       <ul>
         <li><b>Zoom in</b> to reveal more: the great places show first, the lesser ones as you go deeper.</li>
         <li><b>Click</b> any marker for its story, its citations, and a cited passage.</li>
-        <li><b>Search</b> for any place or people — the map flies there and marks it.</li>
-        <li><b>Toggle layers</b> (peoples, modern labels) at the bottom-right, or <b>Sepia</b> for an antique tone.</li>
+        <li><b>Search</b> any place, people, or <b>person</b> (Croesus, Xerxes…) — over a thousand names.</li>
+        <li><b>Open the reader</b> and click any "mentioned at" citation to jump to that passage, with the word highlighted.</li>
       </ul>
       <button class="go" id="intro-go">Enter the map →</button>
+      <p class="intro-gh">
+        Open source — <a href="https://github.com/reverb-boy/historiae" target="_blank" rel="noopener">star it on GitHub ★</a>
+      </p>
       <div style="clear:both"></div>
     </div>
   </div>
@@ -97,6 +110,12 @@
 </script>
 <script>
 {{DATA_PLACES_JS}}
+</script>
+<script>
+{{DATA_PERSONS_JS}}
+</script>
+<script>
+{{DATA_TEXT_JS}}
 </script>
 <script>
 {{APP_JS}}

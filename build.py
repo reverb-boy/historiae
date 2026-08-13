@@ -27,6 +27,8 @@ def main() -> None:
         "{{LEAFLET_JS}}": read(ROOT / "leaflet.js"),
         "{{DATA_JS}}": read(SRC / "data.js"),
         "{{DATA_PLACES_JS}}": read(SRC / "data_places.js"),
+        "{{DATA_PERSONS_JS}}": read(SRC / "data_persons.js"),
+        "{{DATA_TEXT_JS}}": read(SRC / "data_text.js"),
         "{{APP_JS}}": read(SRC / "app.js"),
     }
 
