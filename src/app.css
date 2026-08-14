@@ -169,14 +169,19 @@ html, body {
 }
 #suggest.open { display: block; }
 .sug {
-  padding: 8px 12px; cursor: pointer; display: flex; align-items: center; gap: 9px;
+  padding: 8px 12px; cursor: pointer; display: flex; flex-direction: column;
   border-bottom: 1px solid #f0ead9; font-size: 13.5px;
 }
+.sug-top { display: flex; align-items: center; gap: 9px; }
 .sug:last-child { border-bottom: 0; }
 .sug:hover, .sug.active { background: #f6efdd; }
 .sug .dot { width: 10px; height: 10px; border-radius: 50%; flex: 0 0 auto; }
 .sug .nm { font-weight: 600; }
 .sug .meta { color: var(--ink-soft); font-size: 11.5px; margin-left: auto; font-style: italic; }
+.sug-gloss {
+  color: var(--ink-soft); font-size: 11.5px; line-height: 1.35; margin: 3px 0 0 19px;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
 
 /* --- scrolling control area --- */
 #controls { flex: 1; overflow-y: auto; padding: 4px 14px 20px; }
@@ -246,6 +251,13 @@ html, body {
   padding: 14px 16px 12px; border-bottom: 1px solid var(--edge);
   background: linear-gradient(180deg, var(--parchment-2), var(--parchment));
 }
+.info-back {
+  display: none; align-items: center; gap: 5px; margin: 0 0 8px;
+  background: none; border: none; padding: 0; cursor: pointer;
+  font-family: system-ui, sans-serif; font-size: 12.5px; color: var(--ink-soft);
+}
+.info-back::before { content: "\2190"; font-size: 15px; line-height: 1; }
+.info-back:hover { color: var(--accent); }
 .info-head h2 { margin: 0; font-size: 22px; line-height: 1.15; }
 .placeholder { color: var(--ink-soft); font-size: 14px; line-height: 1.6; }
 .placeholder p { margin: 0 0 14px; }
@@ -262,6 +274,12 @@ html, body {
 
 .info-body { flex: 1; overflow-y: auto; padding: 16px; }
 .info-body p.blurb { margin: 0 0 16px; font-size: 15px; line-height: 1.6; }
+.info-body .xref {
+  color: inherit; cursor: pointer;
+  text-decoration: underline; text-decoration-thickness: 1px;
+  text-underline-offset: 2px; text-decoration-color: rgba(138, 51, 36, .35);
+}
+.info-body .xref:hover { color: var(--accent); text-decoration-color: var(--accent); }
 blockquote.quote {
   margin: 0 0 14px; padding: 12px 14px 12px 16px;
   border-left: 3px solid var(--gold); background: #fbf6e9; border-radius: 0 8px 8px 0;

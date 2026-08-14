@@ -245,13 +245,68 @@
     const d = rec.data;
     return { rec: rec, kind: "place", name: d.name,
       hay: (d.name + " " + (d.aka || "") + " " + (d.region || "") + " " + (d.blurb || "")).toLowerCase(),
-      loose: looseKey(d.name),
+      loose: looseKey(d.name), gloss: d.blurb || d.gloss || "",
       color: (CAT[d.cat] || CAT.landmark).color, sub: d.region || CAT[d.cat].label };
   }).concat((HERODOTUS.persons || []).map(function (p) {
     return { person: p, kind: "person", name: p.name, hay: p.name.toLowerCase(),
-      loose: looseKey(p.name), color: "#7a5c8a",
+      loose: looseKey(p.name), color: "#7a5c8a", gloss: p.gloss || "",
       sub: "person · " + p.mentions + " mention" + (p.mentions > 1 ? "s" : "") };
+  })).concat((HERODOTUS.names || []).map(function (n) {
+    var isPeople = n.type === "ethnic";
+    return { nm: n, kind: "name", name: n.name,
+      hay: (n.name + " " + (n.gloss || "")).toLowerCase(),
+      loose: looseKey(n.name), color: isPeople ? "#9c6b3f" : "#4c7d8c", gloss: n.gloss || "",
+      sub: (isPeople ? "people" : "place") + " · " + n.mentions + " mention" + (n.mentions > 1 ? "s" : "") };
   }));
+
+  // --- cross-reference lookup: normalized name -> best search hit --------------
+  // lets us turn any known name that appears inside a gloss into a link.
+  function hitMentions(x) { return (x.rec ? x.rec.data.mentions : x.person ? x.person.mentions : x.nm ? x.nm.mentions : 0) || 0; }
+  const xrefMap = new Map();
+  let xrefMaxWords = 1;
+  searchIndex.forEach(function (x) {
+    const key = x.name.toLowerCase();
+    if (!key) return;
+    const prev = xrefMap.get(key);
+    if (!prev || hitMentions(x) > hitMentions(prev)) xrefMap.set(key, x);   // prefer the more-mentioned sense
+    const wc = key.split(/\s+/).length;
+    if (wc > xrefMaxWords) xrefMaxWords = wc;
+  });
+  if (xrefMaxWords > 4) xrefMaxWords = 4;   // bound the match window
+
+  // Render gloss/blurb text with every known name turned into a clickable xref
+  // (except self-references). Escapes all non-link text.
+  function linkify(text, selfName) {
+    if (!text) return "";
+    const selfKey = String(selfName || "").toLowerCase();
+    const parts = String(text).split(/([A-Za-zÀ-ɏ]+)/);   // even = separators, odd = words
+    let out = "", i = 0;
+    while (i < parts.length) {
+      if (i % 2 === 0) { out += esc(parts[i]); i++; continue; }
+      let matched = null, endIdx = i;
+      for (let wc = xrefMaxWords; wc >= 1; wc--) {
+        const lastPi = i + (wc - 1) * 2;
+        if (lastPi >= parts.length) continue;
+        const cand = parts.slice(i, lastPi + 1).join("");
+        const key = cand.toLowerCase();
+        if (key !== selfKey && xrefMap.has(key)) { matched = xrefMap.get(key); endIdx = lastPi; break; }
+      }
+      if (matched) {
+        out += '<a class="xref" data-name="' + esc(matched.name) + '">' + esc(parts.slice(i, endIdx + 1).join("")) + "</a>";
+        i = endIdx + 1;
+      } else { out += esc(parts[i]); i++; }
+    }
+    return out;
+  }
+
+  // dispatch a search hit to the right selector (shared by suggestions + xrefs)
+  function dispatchHit(h) {
+    if (!h) return;
+    searchEl.value = h.name; syncClear(); closeSuggest();
+    if (h.kind === "person") selectPerson(h.person);
+    else if (h.kind === "name") selectName(h.nm);
+    else selectPlace(h.rec.data);
+  }
 
   const searchWrap = searchEl.closest(".search-wrap");
   const clearBtn = document.getElementById("search-clear");
@@ -290,10 +345,9 @@
       else if (ql.length >= 3 && x.loose.indexOf(ql) === 0) s = 4;   // spelling-tolerant
       if (s >= 0) scored.push({ x: x, s: s });
     });
-    function ment(x) { return (x.rec ? x.rec.data.mentions : x.person ? x.person.mentions : 0) || 0; }
     scored.sort(function (a, b) {
       if (a.s !== b.s) return a.s - b.s;
-      return ment(b.x) - ment(a.x);
+      return hitMentions(b.x) - hitMentions(a.x);
     });
     const hits = scored.slice(0, 10).map(function (o) { return o.x; });
     if (!hits.length) {
@@ -305,13 +359,11 @@
       const el = document.createElement("div");
       el.className = "sug";
       el.innerHTML =
-        '<span class="dot" style="background:' + h.color + '"></span>' +
+        '<div class="sug-top"><span class="dot" style="background:' + h.color + '"></span>' +
         '<span class="nm">' + esc(h.name) + "</span>" +
-        '<span class="meta">' + esc(h.sub || h.kind) + "</span>";
-      el.addEventListener("click", function () {
-        searchEl.value = h.name; syncClear(); closeSuggest();
-        if (h.kind === "person") selectPerson(h.person); else selectPlace(h.rec.data);
-      });
+        '<span class="meta">' + esc(h.sub || h.kind) + "</span></div>" +
+        (h.gloss ? '<div class="sug-gloss">' + esc(h.gloss) + "</div>" : "");
+      el.addEventListener("click", function () { dispatchHit(h); });
       suggestEl.appendChild(el);
     });
     suggestEl.classList.add("open"); sugActive = -1;
@@ -335,6 +387,28 @@
   const infoAka = document.getElementById("info-aka");
   const infoBadges = document.getElementById("info-badges");
   const infoBody = document.getElementById("info-body");
+
+  // --- navigation history (Back arrow) ---------------------------------------
+  const backBtn = document.getElementById("info-back");
+  const navStack = [];      // entries: [selectFn, argument]
+  let navGuard = false;     // true while replaying a Back step, so we don't re-push
+  function pushNav(fn, arg) {
+    if (navGuard) return;
+    const top = navStack[navStack.length - 1];
+    if (top && top[0] === fn && top[1] === arg) return;   // ignore re-selecting the same entry
+    navStack.push([fn, arg]);
+    syncBack();
+  }
+  function syncBack() { if (backBtn) backBtn.style.display = navStack.length > 1 ? "inline-flex" : "none"; }
+  function goBack() {
+    if (navStack.length < 2) return;
+    navStack.pop();                                   // drop the current entry
+    const prev = navStack[navStack.length - 1];
+    navGuard = true; prev[0](prev[1]); navGuard = false;
+    syncBack();
+  }
+  if (backBtn) backBtn.addEventListener("click", goBack);
+
   map.on("click", function () { showPlaceholder(); });
   function openInfo() { infoHead.style.display = ""; }
   function showPlaceholder() {
@@ -372,6 +446,7 @@
   }
 
   function selectPlace(p) {
+    pushNav(selectPlace, p);
     const cat = CAT[p.cat] || CAT.landmark;
     const term = baseName(p.name);
     infoTitle.textContent = p.name;
@@ -383,9 +458,10 @@
 
     let body;
     if (p.blurb) {
-      body = '<p class="blurb">' + esc(p.blurb) + "</p>" + quoteBlock(p.quote) + booksLine(p.books) + refsBlock(p.refs, term);
+      body = '<p class="blurb">' + linkify(p.blurb, p.name) + "</p>" + quoteBlock(p.quote) + booksLine(p.books) + refsBlock(p.refs, term);
     } else {
-      body = refsBlock(p.refs, term) + booksLine(p.books);   // badges already carry cat/region/count
+      body = (p.gloss ? '<p class="blurb">' + linkify(p.gloss, p.name) + "</p>" : "") +
+        refsBlock(p.refs, term) + booksLine(p.books);   // badges carry cat/region/count
     }
     if (p.pleiades) {
       body += '<p class="ext"><a href="https://pleiades.stoa.org/places/' + esc(p.pleiades) +
@@ -400,13 +476,33 @@
   }
 
   function selectPerson(p) {
+    pushNav(selectPerson, p);
     infoTitle.textContent = p.name;
     infoAka.textContent = "a person named in the Histories";
     infoBadges.innerHTML = '<span class="badge cat" style="background:#7a5c8a">Person</span>' +
       '<span class="badge">' + p.mentions + " mention" + (p.mentions > 1 ? "s" : "") + "</span>";
-    infoBody.innerHTML = refsBlock(p.refs, p.name) + booksLine(booksOf(p.refs));
+    infoBody.innerHTML = (p.gloss ? '<p class="blurb">' + linkify(p.gloss, p.name) + "</p>" : "") +
+      refsBlock(p.refs, p.name) + booksLine(booksOf(p.refs));
     openInfo();
     if (selectedRec) { selectedRec = null; refresh(); }   // person has no map location
+    clearHighlight();
+  }
+
+  function selectName(n) {
+    pushNav(selectName, n);
+    var isPeople = n.type === "ethnic";
+    var term = baseName(n.name);
+    infoTitle.textContent = n.name;
+    infoAka.textContent = isPeople ? "a people named in the Histories"
+                                   : "a place named in the Histories";
+    infoBadges.innerHTML =
+      '<span class="badge cat" style="background:' + (isPeople ? "#9c6b3f" : "#4c7d8c") + '">' +
+      (isPeople ? "People" : "Place") + "</span>" +
+      '<span class="badge">' + n.mentions + " mention" + (n.mentions > 1 ? "s" : "") + "</span>";
+    infoBody.innerHTML = (n.gloss ? '<p class="blurb">' + linkify(n.gloss, n.name) + "</p>" : "") +
+      refsBlock(n.refs, term) + booksLine(booksOf(n.refs));
+    openInfo();
+    if (selectedRec) { selectedRec = null; refresh(); }   // not on the map
     clearHighlight();
   }
 
@@ -484,6 +580,8 @@
   });
   // clicking a "Mentioned at 1.72" chip jumps to that passage with the term marked
   infoBody.addEventListener("click", function (e) {
+    const xr = e.target.closest(".xref");
+    if (xr) { e.preventDefault(); dispatchHit(xrefMap.get(String(xr.dataset.name || "").toLowerCase())); return; }
     const el = e.target.closest(".ref");
     if (el) openReaderRef(el.dataset.ref, el.dataset.term || "");
   });
