@@ -28,6 +28,7 @@ def main() -> None:
         "{{DATA_JS}}": read(SRC / "data.js"),
         "{{DATA_PLACES_JS}}": read(SRC / "data_places.js"),
         "{{DATA_PERSONS_JS}}": read(SRC / "data_persons.js"),
+        "{{DATA_NAMES_JS}}": read(SRC / "data_names.js"),
         "{{DATA_TEXT_JS}}": read(SRC / "data_text.js"),
         "{{APP_JS}}": read(SRC / "app.js"),
     }

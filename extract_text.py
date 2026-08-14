@@ -128,6 +128,24 @@ def main():
             pid += "-2"
         p["id"] = pid; seen.add(pid)
 
+    gp = ROOT / "data" / "person_glosses.json"        # attach generated glosses
+    if gp.exists():
+        gl = json.loads(gp.read_text(encoding="utf-8"))
+        for p in plist:
+            if gl.get(p["id"]):
+                p["gloss"] = gl[p["id"]]
+    # fallback: fill any still-blank person from the unified name-gloss sweep (by norm name)
+    ng = ROOT / "data" / "name_glosses.json"
+    an = ROOT / "data" / "all_names.json"
+    if ng.exists() and an.exists():
+        gl2 = json.loads(ng.read_text(encoding="utf-8"))
+        norm2gloss = {norm(r["name"]): gl2[r["slug"]] for r in json.loads(an.read_text(encoding="utf-8"))
+                      if gl2.get(r["slug"])}
+        for p in plist:
+            if not p.get("gloss") and norm2gloss.get(norm(p["name"])):
+                p["gloss"] = norm2gloss[norm(p["name"])]
+    print(f"attached {sum(1 for p in plist if p.get('gloss'))} person glosses")
+
     (ROOT / "src" / "data_text.js").write_text(
         "HERODOTUS_TEXT = " + json.dumps(text, ensure_ascii=False, separators=(",", ":")) + ";\n",
         encoding="utf-8")
