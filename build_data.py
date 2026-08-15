@@ -510,6 +510,17 @@ HARD_FIXES = {
     "aphrodisias": (32.90, 21.00, "landmark"), # island off Cyrene, Libya (was Bithynia)
     "soloeis":    (32.50, -9.30, "landmark"),  # NW-African cape (was Sicily)
     "nysa":       (18.50, 33.00, "landmark"),  # mythical Nysa beyond Egypt (was Anatolia)
+    # third pass — region/people area-labels floating off their territory
+    # (screened against the scan_pins.py gazetteer boxes)
+    "attica":      (38.00, 23.80, "region"),   # over Athens (was up in the Euboean gulf)
+    "hyrcanians":  (37.00, 54.00, "people"),   # SE Caspian (was in Lydia)
+    "theraeans":   (36.42, 25.43, "people"),   # Thera/Santorini (was off Caria)
+    "bithynians":  (40.50, 30.30, "people"),   # NW Anatolia (was in the Black Sea)
+    "paphlagonia": (41.40, 34.00, "region"),   # N. Anatolian coast (was in the sea)
+    "pamphylians": (37.00, 31.00, "people"),   # S. Anatolian coast
+    "phrygia":     (39.00, 31.00, "region"),   # inland W-central Anatolia
+    "bactria":     (36.70, 66.90, "region"),   # Bactria proper (was S. Afghanistan)
+    "india":       (28.00, 71.00, "region"),   # the Indus (was the Deccan)
 }
 # entries that are not places at all (persons the TEI mistagged) or duplicates
 DROP_IDS = {
