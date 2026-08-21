@@ -521,6 +521,9 @@ HARD_FIXES = {
     "phrygia":     (39.00, 31.00, "region"),   # inland W-central Anatolia
     "bactria":     (36.70, 66.90, "region"),   # Bactria proper (was S. Afghanistan)
     "india":       (28.00, 71.00, "region"),   # the Indus (was the Deccan)
+    # continent labels — recentre on Herodotus' known world, not the modern extent
+    "europe":      (46.00, 16.00, "region"),   # central Europe (was on the Black Sea)
+    "asia":        (40.00, 52.00, "region"),   # Media / N. Persia (was in W. China)
 }
 # entries that are not places at all (persons the TEI mistagged) or duplicates
 DROP_IDS = {
